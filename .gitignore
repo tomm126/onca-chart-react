@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Firebase service account key (secret)
+serviceAccountKey*.json
+
 # Environment variables
 .env
 .env.local
