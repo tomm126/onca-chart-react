@@ -11,6 +11,10 @@ import { useUndoRedo } from './hooks/useUndoRedo';
 import { useGanttDays } from './hooks/useGanttDays';
 import { useAppContext } from './context/AppContext';
 import { dk, todayStr } from './utils/date';
+import { useAuth } from './hooks/useAuth';
+import { useChartData } from './hooks/useChartData';
+import { LoginPage } from './components/LoginPage/LoginPage';
+import { FirestoreSync } from './components/FirestoreSync';
 
 function AppInner() {
   const { state } = useAppContext();
@@ -48,9 +52,33 @@ function AppInner() {
 }
 
 export default function App() {
+  const { user, loading: authLoading } = useAuth();
+  const { initialState, loading: dataLoading } = useChartData(user);
+
+  if (authLoading || (user && (dataLoading || !initialState))) return <LoadingScreen />;
+  if (!user) return <LoginPage />;
+
   return (
-    <AppProvider>
+    <AppProvider initialState={initialState!}>
+      <FirestoreSync />
       <AppInner />
     </AppProvider>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--bg)',
+      color: 'var(--text2)',
+      fontSize: '13px',
+      fontFamily: "'Noto Sans JP', sans-serif",
+    }}>
+      読み込み中...
+    </div>
   );
 }

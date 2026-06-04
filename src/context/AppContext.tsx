@@ -6,7 +6,7 @@ import { dk, addD } from '../utils/date';
 
 const MAX_HISTORY = 50;
 
-function makeInitialState(): AppState {
+export function makeInitialState(): AppState {
   const now = new Date().toISOString();
   const yesterday = dk(addD(new Date(), -1));
   return {
@@ -89,8 +89,8 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, makeInitialState);
+export function AppProvider({ children, initialState }: { children: React.ReactNode; initialState: AppState }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
   const undoStack = useRef<AppState[]>([]);
   const redoStack = useRef<AppState[]>([]);
   const [canUndo, setCanUndo] = useState(false);
