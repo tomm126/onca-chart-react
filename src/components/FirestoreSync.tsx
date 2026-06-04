@@ -6,7 +6,7 @@ import type { AppState } from '../types';
 
 // ブラウザセッションごとに一意なID（自分自身の書き込みをスキップするため）
 const SESSION_ID = Math.random().toString(36).slice(2);
-const CHART_DOC = () => doc(db, 'charts', 'shared');
+const CHART_DOC = () => doc(db, 'charts', 'main');
 
 export function FirestoreSync() {
   const { state, dispatch } = useAppContext();

@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { makeInitialState } from '../context/AppContext';
 import type { AppState } from '../types';
 
-const CHART_DOC = () => doc(db, 'charts', 'shared');
+const CHART_DOC = () => doc(db, 'charts', 'main');
 
 export function useChartData(user: User | null): { initialState: AppState | null; loading: boolean } {
   const [initialState, setInitialState] = useState<AppState | null>(null);
