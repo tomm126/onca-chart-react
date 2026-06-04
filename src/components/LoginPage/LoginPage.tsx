@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../../firebase';
 
-export function LoginPage() {
+interface LoginPageProps {
+  accessDenied?: boolean;
+}
+
+export function LoginPage({ accessDenied = false }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null);
 
   async function handleGoogleLogin() {
@@ -33,6 +37,9 @@ export function LoginPage() {
           <span>Googleでログイン</span>
         </button>
 
+        {accessDenied && (
+          <p style={styles.denied}>アクセスが許可されていません</p>
+        )}
         {error && <p style={styles.error}>{error}</p>}
       </div>
     </div>
@@ -100,6 +107,13 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     justifyContent: 'center',
     transition: 'background 0.15s',
+  },
+  denied: {
+    fontSize: '13px',
+    color: '#c0392b',
+    marginTop: '4px',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   error: {
     fontSize: '12px',

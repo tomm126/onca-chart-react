@@ -52,11 +52,11 @@ function AppInner() {
 }
 
 export default function App() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, accessDenied } = useAuth();
   const { initialState, loading: dataLoading } = useChartData(user);
 
   if (authLoading || (user && (dataLoading || !initialState))) return <LoadingScreen />;
-  if (!user) return <LoginPage />;
+  if (!user) return <LoginPage accessDenied={accessDenied} />;
 
   return (
     <AppProvider initialState={initialState!}>
