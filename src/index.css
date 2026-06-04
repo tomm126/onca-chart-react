@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --toolbar-h: 48px;
+  --date-month-h: 24px;
+  --date-day-h: 26px;
+  --date-h: 50px;
+  --row-h: 28px;
+  --add-row-h: 18px;
+  --handle-w: 14px;
+  --col-name: 172px;
+  --col-pages: 46px;
+  --col-start: 76px;
+  --col-dead: 76px;
+  --col-member: 88px;
+  --left-w: calc(var(--handle-w) + var(--col-name) + var(--col-pages) + var(--col-start) + var(--col-dead) + var(--col-member));
+  --cell-w: 26px;
+  --panel-w: 300px;
+
+  --bg: #f5f4f1;
+  --surface: #fff;
+  --surface2: #f9f8f6;
+  --surface3: #f0efe9;
+  --border: #e2e0d8;
+  --border2: #d4d2c8;
+  --text: #1a1916;
+  --text2: #6b6960;
+  --text3: #a8a69e;
+  --today-bg: #fff9e6;
+  --today-line: #d4a017;
+  --weekend-bg: #e8e7e2;
+  --nwd-bg: #dddbd4;
+  --pinned-bg: #f7f6f3;
+  --pin-color: #1a1916;
+  --archive-bar-c: #6b6960;
+  --status-submitted: #e8f5e9;
+  --status-testup: #fffde7;
+  --status-done: #f0f0ee;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+}
+
+input, select {
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+@media (max-width: 768px) {
+  html, body { height: auto !important; overflow: auto !important; }
+}
