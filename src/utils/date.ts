@@ -39,7 +39,22 @@ export function isNWD(
 }
 
 export function getGanttStartDate(): Date {
-  return addD(new Date(), -30);
+  return addD(new Date(), -14);
+}
+
+export function isStartOverdue(startStr: string): boolean {
+  if (!startStr) return false;
+  let d: Date;
+  const m = startStr.match(/^(\d{4})[\/\-](\d{1,2})(?:[\/\-](\d{1,2}))?/);
+  if (m) {
+    d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, m[3] ? parseInt(m[3]) : 1);
+  } else {
+    d = new Date(startStr);
+  }
+  if (isNaN(d.getTime())) return false;
+  const ago = new Date();
+  ago.setMonth(ago.getMonth() - 3);
+  return d <= ago;
 }
 
 export function hexToRgb(hex: string): string {

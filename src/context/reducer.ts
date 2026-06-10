@@ -19,6 +19,7 @@ export type Action =
   | { type: 'ADD_PIN'; rowId: string; dateStr: string; label: string }
   | { type: 'RESIZE_PIN'; rowId: string; dateStr: string; pinId: string; span: number }
   | { type: 'DELETE_PIN'; rowId: string; dateStr: string; pinId: string }
+  | { type: 'UPDATE_PIN_LABEL'; rowId: string; dateStr: string; pinId: string; label: string }
   | { type: 'ADD_NWD'; dateStr: string }
   | { type: 'REMOVE_NWD'; dateStr: string; isDefaultNWD: boolean }
   | { type: 'SET_ARCHIVE_BEFORE'; dateStr: string }
@@ -204,6 +205,16 @@ export function reducer(state: AppState, action: Action): AppState {
         if (!pins[action.rowId][action.dateStr].length) {
           delete pins[action.rowId][action.dateStr];
         }
+      }
+      return { ...state, pins };
+    }
+
+    case 'UPDATE_PIN_LABEL': {
+      const pins = JSON.parse(JSON.stringify(state.pins)) as AppState['pins'];
+      const list = pins[action.rowId]?.[action.dateStr];
+      if (list) {
+        const pin = list.find(p => p.id === action.pinId);
+        if (pin) pin.label = action.label;
       }
       return { ...state, pins };
     }

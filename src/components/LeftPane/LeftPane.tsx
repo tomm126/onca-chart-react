@@ -4,6 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useVisibleProjects } from '../../hooks/useVisibleProjects';
 import type { Project, Row, Status } from '../../types';
 import { STATUS_LABELS } from '../../constants/palette';
+import { isStartOverdue } from '../../utils/date';
 import styles from './LeftPane.module.css';
 
 interface LeftPaneProps {
@@ -205,7 +206,7 @@ function ProjectGroup({
 
                 {/* 開始 */}
                 <div
-                  className={`${styles.cell} ${styles.cellStart} ${isSecond ? styles.cellStartSecond : ''} ${editingField === `start-${proj.id}` && !isSecond ? styles.editing : ''}`}
+                  className={`${styles.cell} ${styles.cellStart} ${isSecond ? styles.cellStartSecond : ''} ${!isSecond && isStartOverdue(proj.start) ? styles.cellStartOverdue : ''} ${editingField === `start-${proj.id}` && !isSecond ? styles.editing : ''}`}
                   onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`start-${proj.id}`); } : undefined}
                 >
                   {editingField === `start-${proj.id}` && !isSecond ? (

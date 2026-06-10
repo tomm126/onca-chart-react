@@ -4,7 +4,7 @@ import React, {
 import type { RefObject } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useVisibleProjects } from '../../hooks/useVisibleProjects';
-import type { Project, Pin } from '../../types';
+import type { Project, Pin, ContextMenuItem } from '../../types';
 import { dk, todayStr, isWknd, isHol, isNWD, hexToRgb } from '../../utils/date';
 import styles from './GanttPane.module.css';
 
@@ -97,20 +97,76 @@ const PinLabel = React.memo(function PinLabel({
   dateStr,
   onResize,
   onDelete,
+  onEdit,
 }: {
   pin: Pin;
   rowId: string;
   dateStr: string;
   onResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
   onDelete: (rowId: string, dateStr: string, pinId: string) => void;
+  onEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
 }) {
+  const [editing, setEditing] = React.useState(false);
+  const [editValue, setEditValue] = React.useState('');
+  const committedRef = React.useRef(false);
+
+  const handleDblClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    committedRef.current = false;
+    setEditValue('');
+    setEditing(true);
+  };
+
+  const commitEdit = () => {
+    if (committedRef.current) return;
+    committedRef.current = true;
+    const newLabel = editValue.trim() || pin.label;
+    setEditing(false);
+    if (newLabel !== pin.label) onEdit(rowId, dateStr, pin.id, newLabel);
+  };
+
+  const cancelEdit = () => {
+    if (committedRef.current) return;
+    committedRef.current = true;
+    setEditing(false);
+  };
+
   return (
     <div
       className={styles.pinWrap}
       style={{ width: (pin.span || 1) * CELL_W }}
+      onMouseDown={e => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       onContextMenu={e => { e.preventDefault(); e.stopPropagation(); onDelete(rowId, dateStr, pin.id); }}
     >
-      <div className={styles.pinLabelInner}>{pin.label}</div>
+      <div className={styles.pinLabelInner} onDoubleClick={handleDblClick}>{pin.label}</div>
+      {editing && (
+        <input
+          autoFocus
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            border: 'none',
+            background: 'var(--pin-color)',
+            fontSize: 9,
+            padding: '0 5px',
+            outline: 'none',
+            zIndex: 10,
+            color: '#fff',
+            borderRadius: 3,
+            fontFamily: "'DM Mono', monospace",
+          }}
+          value={editValue}
+          onChange={e => setEditValue(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) commitEdit();
+            if (e.key === 'Escape') cancelEdit();
+          }}
+          onBlur={commitEdit}
+        />
+      )}
       <div
         className={styles.pinResize}
         onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onResize(rowId, dateStr, pin.id, e.clientX, pin.span || 1); }}
@@ -140,6 +196,7 @@ const GanttCell = React.memo(function GanttCell({
   onContextMenu,
   onPinResize,
   onPinDelete,
+  onPinEdit,
 }: {
   dstr: string;
   di: number;
@@ -160,6 +217,7 @@ const GanttCell = React.memo(function GanttCell({
   onContextMenu: (e: React.MouseEvent, rowId: string, dstr: string) => void;
   onPinResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
   onPinDelete: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
 }) {
   let cls = styles.gridCell;
   if (isNwd) cls += ' ' + styles.nwdCell;
@@ -191,6 +249,7 @@ const GanttCell = React.memo(function GanttCell({
           dateStr={dstr}
           onResize={onPinResize}
           onDelete={onPinDelete}
+          onEdit={onPinEdit}
         />
       ))}
     </div>
@@ -347,6 +406,11 @@ export const GanttPane = React.memo(function GanttPane({
     dispatch({ type: 'DELETE_PIN', rowId, dateStr, pinId });
   }, [dispatch, saveHistory]);
 
+  const handlePinEdit = useCallback((rowId: string, dateStr: string, pinId: string, label: string) => {
+    saveHistory();
+    dispatch({ type: 'UPDATE_PIN_LABEL', rowId, dateStr, pinId, label });
+  }, [dispatch, saveHistory]);
+
   // ── Inline pin input ────────────────────────────────────────────────────────
   const pinInputRef = useRef<HTMLInputElement | null>(null);
   const pinInputWrapRef = useRef<HTMLDivElement | null>(null);
@@ -462,15 +526,22 @@ export const GanttPane = React.memo(function GanttPane({
   const handleCellContextMenu = useCallback((e: React.MouseEvent, rowId: string, dstr: string) => {
     const proj = state.projects.find(p => p.rows.some(r => r.id === rowId));
     if (!proj) return;
-    setContextMenu({
-      visible: true,
-      x: e.clientX,
-      y: e.clientY,
-      items: [
-        { label: '📅 日数を指定して追加', action: () => setPanel({ type: 'bulkAdd', projectId: proj.id, rowId, startDate: dstr }) },
-      ],
-    });
-  }, [state.projects, setContextMenu, setPanel]);
+    const hasPins = (state.pins[rowId]?.[dstr]?.length ?? 0) > 0;
+    const isArc = dstr <= state.view.archiveBefore;
+    const items: ContextMenuItem[] = [];
+    if (!hasPins && !isArc) {
+      items.push({
+        label: '📌 ピンを追加',
+        action: () => {
+          const cellEl = cellMapRef.current.get(buildCellKey(rowId, dstr));
+          if (cellEl) handleCellDblClick(cellEl, rowId, dstr);
+        },
+      });
+      items.push({ label: '', separator: true });
+    }
+    items.push({ label: '📅 日数を指定して追加', action: () => setPanel({ type: 'bulkAdd', projectId: proj.id, rowId, startDate: dstr }) });
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, items });
+  }, [state.projects, state.pins, state.view.archiveBefore, handleCellDblClick, setContextMenu, setPanel]);
 
   // ── Render rows ─────────────────────────────────────────────────────────────
   function renderProjectGroup(proj: Project, isPinned: boolean) {
@@ -522,6 +593,7 @@ export const GanttPane = React.memo(function GanttPane({
                     onContextMenu={handleCellContextMenu}
                     onPinResize={handlePinResizeStart}
                     onPinDelete={handlePinDelete}
+                    onPinEdit={handlePinEdit}
                   />
                 );
               })}
@@ -548,7 +620,7 @@ export const GanttPane = React.memo(function GanttPane({
           {norm.map(proj => renderProjectGroup(proj, false))}
           {pinnedProjects.length > 0 && (
             <>
-              <div className={styles.gridSep} />
+              <div className={styles.gridSep} style={{ width: ganttDays.length * CELL_W }} />
               {pinnedProjects.map(proj => renderProjectGroup(proj, true))}
             </>
           )}

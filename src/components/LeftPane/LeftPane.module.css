@@ -183,6 +183,8 @@
   white-space: nowrap;
 }
 
+.cellStartOverdue { color: #c0392b; font-weight: 600; }
+
 .cellDead { width: var(--col-dead); }
 
 .cellStartSecond,
