@@ -384,8 +384,9 @@ export const GanttPane = React.memo(function GanttPane({
   });
 
   const handlePinResizeStart = useCallback((rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => {
+    saveHistory();
     pinResize.current = { on: true, rowId, dateStr, pinId, startX, origSpan };
-  }, []);
+  }, [saveHistory]);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -394,12 +395,12 @@ export const GanttPane = React.memo(function GanttPane({
       dispatch({ type: 'RESIZE_PIN', rowId: pinResize.current.rowId, dateStr: pinResize.current.dateStr, pinId: pinResize.current.pinId, span: newSpan });
     };
     const onMouseUp = () => {
-      if (pinResize.current.on) { saveHistory(); pinResize.current.on = false; }
+      if (pinResize.current.on) { pinResize.current.on = false; }
     };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
     return () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
-  }, [dispatch, saveHistory]);
+  }, [dispatch]);
 
   const handlePinContextMenu = useCallback((e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => {
     e.preventDefault();
