@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { dk, todayStr } from '../../utils/date';
+import { dk, addD, todayStr } from '../../utils/date';
+import type { AppState } from '../../types';
 import styles from './Toolbar.module.css';
 
 interface ToolbarProps {
@@ -11,6 +12,8 @@ interface ToolbarProps {
 export const Toolbar = React.memo(function Toolbar({ scrollPaneRef, ganttDays }: ToolbarProps) {
   const {
     state,
+    dispatch,
+    clearHistory,
     filterMembers, setFilterMembers,
     showDone, setShowDone,
     setPanel,
@@ -18,6 +21,9 @@ export const Toolbar = React.memo(function Toolbar({ scrollPaneRef, ganttDays }:
 
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -46,6 +52,60 @@ export const Toolbar = React.memo(function Toolbar({ scrollPaneRef, ganttDays }:
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, [state]);
+
+  const handleImport = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const d = JSON.parse(ev.target?.result as string);
+
+        if (!Array.isArray(d.projects) || !Array.isArray(d.members)) {
+          alert('このツールのエクスポートデータではありません。');
+          return;
+        }
+        if (d.projects.length === 0) {
+          alert('案件データが空です。インポートを中止しました。');
+          return;
+        }
+
+        const cur = state.projects.length;
+        const imp = d.projects.length;
+        if (!confirm(`現在 ${cur} 件 → インポート後 ${imp} 件に置き換えます。\nインポート前に現在のデータを自動バックアップします。よろしいですか？`)) return;
+
+        // 現在データを自動エクスポート（バックアップ）
+        const backupState = { ...state, meta: { ...state.meta, updatedAt: new Date().toISOString() } };
+        const backup = new Blob([JSON.stringify(backupState, null, 2)], { type: 'application/json' });
+        const ba = document.createElement('a');
+        const backupUrl = URL.createObjectURL(backup);
+        ba.href = backupUrl;
+        ba.download = `onca-chart-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        ba.click();
+        setTimeout(() => URL.revokeObjectURL(backupUrl), 1000);
+
+        // インポート実行
+        const yesterday = dk(addD(new Date(), -1));
+        const importedState: AppState = {
+          ...d,
+          view: d.view ?? { archiveBefore: yesterday, days: 210 },
+          customNonWorkingDays: d.customNonWorkingDays ?? [],
+          removedHolidays: d.removedHolidays ?? [],
+          pins: d.pins ?? {},
+        };
+        dispatch({ type: 'RESTORE_SNAPSHOT', snapshot: importedState });
+        clearHistory();
+      } catch {
+        alert('JSONの読み込みに失敗しました。ファイルを確認してください。');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, [state, dispatch, clearHistory]);
 
   const toggleMemberFilter = useCallback((id: string, checked: boolean) => {
     setFilterMembers(prev => {
@@ -125,6 +185,16 @@ export const Toolbar = React.memo(function Toolbar({ scrollPaneRef, ganttDays }:
 
       <div className={styles.divider} />
       <button className={styles.btn} onClick={handleExport}>エクスポート</button>
+      {isAdmin && (
+        <button className={styles.btn} onClick={handleImport}>インポート</button>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
 
       <div className={styles.spacer}>
         <div className={styles.legend}>
