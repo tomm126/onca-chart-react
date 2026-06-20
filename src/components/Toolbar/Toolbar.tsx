@@ -81,28 +81,36 @@ export const Toolbar = React.memo(function Toolbar({ scrollPaneRef, ganttDays }:
       <div className={styles.filterWrap} ref={filterRef}>
         <button
           className={`${styles.btn} ${isFilterActive ? styles.btnFilterActive : ''}`}
-          onClick={() => setFilterOpen(v => !v)}
+          onClick={e => { e.stopPropagation(); setFilterOpen(v => !v); }}
         >
           担当者フィルタ ▾
         </button>
         {filterOpen && (
-          <div className={styles.filterDropdown}>
+          <div className={styles.filterDropdown} onClick={e => e.stopPropagation()}>
             <div
               className={styles.filterItem}
-              onClick={() => { setFilterMembers(new Set()); }}
+              onClick={e => { e.stopPropagation(); setFilterMembers(new Set()); }}
             >
               <span style={{ fontSize: 10, color: 'var(--text3)' }}>すべて表示</span>
             </div>
             {state.members.map(m => (
-              <label key={m.id} className={styles.filterItem}>
+              <div
+                key={m.id}
+                className={styles.filterItem}
+                onClick={e => {
+                  e.stopPropagation();
+                  toggleMemberFilter(m.id, !filterMembers.has(m.id));
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={filterMembers.has(m.id)}
-                  onChange={e => toggleMemberFilter(m.id, e.target.checked)}
+                  onChange={e => { e.stopPropagation(); toggleMemberFilter(m.id, e.target.checked); }}
+                  onClick={e => e.stopPropagation()}
                 />
                 <span className={styles.filterDot} style={{ background: m.color }} />
                 <span>{m.name}</span>
-              </label>
+              </div>
             ))}
           </div>
         )}
