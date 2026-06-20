@@ -74,6 +74,7 @@ interface AppContextValue {
   canUndo: boolean;
   canRedo: boolean;
   saveHistory: () => void;
+  clearHistory: () => void;
   // UI state
   filterMembers: Set<string>;
   setFilterMembers: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -116,6 +117,13 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
     setCanRedo(false);
   }, []);
 
+  const clearHistory = useCallback(() => {
+    undoStack.current = [];
+    redoStack.current = [];
+    setCanUndo(false);
+    setCanRedo(false);
+  }, []);
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -142,7 +150,7 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
 
   return (
     <AppContext.Provider value={{
-      state, dispatch, undo, redo, canUndo, canRedo, saveHistory,
+      state, dispatch, undo, redo, canUndo, canRedo, saveHistory, clearHistory,
       filterMembers, setFilterMembers,
       showDone, setShowDone,
       panel, setPanel,

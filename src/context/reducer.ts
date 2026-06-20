@@ -221,7 +221,12 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'ADD_NWD':
       if (state.customNonWorkingDays.includes(action.dateStr)) return state;
-      return { ...state, customNonWorkingDays: [...state.customNonWorkingDays, action.dateStr] };
+      return {
+        ...state,
+        customNonWorkingDays: [...state.customNonWorkingDays, action.dateStr],
+        // removedHolidays から除去して土日/祝日を非稼働日に戻せるようにする
+        removedHolidays: state.removedHolidays.filter(d => d !== action.dateStr),
+      };
 
     case 'REMOVE_NWD': {
       const customNonWorkingDays = state.customNonWorkingDays.filter(d => d !== action.dateStr);

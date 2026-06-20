@@ -69,12 +69,13 @@ const DateHeader = React.memo(function DateHeader({
           let cls = styles.dayCell;
           if (nwd) cls += ' ' + styles.nwdHdr;
           else if (arc) cls += ' ' + styles.arcHdr;
-          else {
+          // 土日・祝日の文字色は非稼働日かどうかに関わらず適用（アーカイブ時は除く）
+          if (!arc) {
             if (dw === 6) cls += ' ' + styles.sat;
             else if (dw === 0) cls += ' ' + styles.sun;
             else if (isHol(d)) cls += ' ' + styles.hol;
-            if (dstr === today) cls += ' ' + styles.todayHdr;
           }
+          if (!nwd && !arc && dstr === today) cls += ' ' + styles.todayHdr;
           return (
             <div
               key={dstr}
@@ -96,14 +97,14 @@ const PinLabel = React.memo(function PinLabel({
   rowId,
   dateStr,
   onResize,
-  onDelete,
+  onContextMenu,
   onEdit,
 }: {
   pin: Pin;
   rowId: string;
   dateStr: string;
   onResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
-  onDelete: (rowId: string, dateStr: string, pinId: string) => void;
+  onContextMenu: (e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => void;
   onEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
 }) {
   const [editing, setEditing] = React.useState(false);
@@ -138,7 +139,7 @@ const PinLabel = React.memo(function PinLabel({
       style={{ width: (pin.span || 1) * CELL_W }}
       onMouseDown={e => e.stopPropagation()}
       onClick={e => e.stopPropagation()}
-      onContextMenu={e => { e.preventDefault(); e.stopPropagation(); onDelete(rowId, dateStr, pin.id); }}
+      onContextMenu={e => onContextMenu(e, rowId, dateStr, pin.id)}
     >
       <div className={styles.pinLabelInner} onDoubleClick={handleDblClick}>{pin.label}</div>
       {editing && (
@@ -195,7 +196,7 @@ const GanttCell = React.memo(function GanttCell({
   onDblClick,
   onContextMenu,
   onPinResize,
-  onPinDelete,
+  onPinContextMenu,
   onPinEdit,
 }: {
   dstr: string;
@@ -216,7 +217,7 @@ const GanttCell = React.memo(function GanttCell({
   onDblClick: (el: HTMLDivElement, rowId: string, dstr: string) => void;
   onContextMenu: (e: React.MouseEvent, rowId: string, dstr: string) => void;
   onPinResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
-  onPinDelete: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinContextMenu: (e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => void;
   onPinEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
 }) {
   let cls = styles.gridCell;
@@ -248,7 +249,7 @@ const GanttCell = React.memo(function GanttCell({
           rowId={rowId}
           dateStr={dstr}
           onResize={onPinResize}
-          onDelete={onPinDelete}
+          onContextMenu={onPinContextMenu}
           onEdit={onPinEdit}
         />
       ))}
@@ -384,8 +385,9 @@ export const GanttPane = React.memo(function GanttPane({
   });
 
   const handlePinResizeStart = useCallback((rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => {
+    saveHistory();
     pinResize.current = { on: true, rowId, dateStr, pinId, startX, origSpan };
-  }, []);
+  }, [saveHistory]);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -394,17 +396,32 @@ export const GanttPane = React.memo(function GanttPane({
       dispatch({ type: 'RESIZE_PIN', rowId: pinResize.current.rowId, dateStr: pinResize.current.dateStr, pinId: pinResize.current.pinId, span: newSpan });
     };
     const onMouseUp = () => {
-      if (pinResize.current.on) { saveHistory(); pinResize.current.on = false; }
+      if (pinResize.current.on) { pinResize.current.on = false; }
     };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
     return () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
-  }, [dispatch, saveHistory]);
+  }, [dispatch]);
 
-  const handlePinDelete = useCallback((rowId: string, dateStr: string, pinId: string) => {
-    saveHistory();
-    dispatch({ type: 'DELETE_PIN', rowId, dateStr, pinId });
-  }, [dispatch, saveHistory]);
+  const handlePinContextMenu = useCallback((e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: '✕ ピンを削除',
+          danger: true,
+          action: () => {
+            saveHistory();
+            dispatch({ type: 'DELETE_PIN', rowId, dateStr, pinId });
+          },
+        },
+      ],
+    });
+  }, [dispatch, saveHistory, setContextMenu]);
 
   const handlePinEdit = useCallback((rowId: string, dateStr: string, pinId: string, label: string) => {
     saveHistory();
@@ -592,7 +609,7 @@ export const GanttPane = React.memo(function GanttPane({
                     onDblClick={handleCellDblClick}
                     onContextMenu={handleCellContextMenu}
                     onPinResize={handlePinResizeStart}
-                    onPinDelete={handlePinDelete}
+                    onPinContextMenu={handlePinContextMenu}
                     onPinEdit={handlePinEdit}
                   />
                 );
