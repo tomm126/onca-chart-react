@@ -69,12 +69,13 @@ const DateHeader = React.memo(function DateHeader({
           let cls = styles.dayCell;
           if (nwd) cls += ' ' + styles.nwdHdr;
           else if (arc) cls += ' ' + styles.arcHdr;
-          else {
+          // 土日・祝日の文字色は非稼働日かどうかに関わらず適用（アーカイブ時は除く）
+          if (!arc) {
             if (dw === 6) cls += ' ' + styles.sat;
             else if (dw === 0) cls += ' ' + styles.sun;
             else if (isHol(d)) cls += ' ' + styles.hol;
-            if (dstr === today) cls += ' ' + styles.todayHdr;
           }
+          if (!nwd && !arc && dstr === today) cls += ' ' + styles.todayHdr;
           return (
             <div
               key={dstr}
