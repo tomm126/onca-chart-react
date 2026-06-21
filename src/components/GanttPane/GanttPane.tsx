@@ -186,6 +186,7 @@ const GanttCell = React.memo(function GanttCell({
   isArc,
   isWknd: weekend,
   isToday,
+  isFirstRow,
   pins,
   cellRef,
   onMouseDown,
@@ -207,6 +208,7 @@ const GanttCell = React.memo(function GanttCell({
   isArc: boolean;
   isWknd: boolean;
   isToday: boolean;
+  isFirstRow: boolean;
   pins: Pin[];
   cellRef: (el: HTMLDivElement | null) => void;
   onMouseDown: (di: number, dstr: string, rowId: string, paint: boolean) => void;
@@ -220,6 +222,7 @@ const GanttCell = React.memo(function GanttCell({
   onPinEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
 }) {
   let cls = styles.gridCell;
+  if (isFirstRow) cls += ' ' + styles.gridCellFirst;
   if (isNwd) cls += ' ' + styles.nwdCell;
   else {
     if (weekend) cls += ' ' + styles.wkndCell;
@@ -274,7 +277,6 @@ export const GanttPane = React.memo(function GanttPane({
   });
 
   const applyCell = useCallback((rowId: string, dstr: string, paint: boolean) => {
-    // Optimistic DOM update for smooth drag
     const cell = cellMapRef.current.get(buildCellKey(rowId, dstr));
     if (cell) {
       const proj = state.projects.find(p => p.rows.some(r => r.id === rowId));
@@ -543,64 +545,76 @@ export const GanttPane = React.memo(function GanttPane({
     setContextMenu({ visible: true, x: e.clientX, y: e.clientY, items });
   }, [state.projects, state.pins, state.view.archiveBefore, handleCellDblClick, setContextMenu, setPanel]);
 
-  // ── Render rows ─────────────────────────────────────────────────────────────
+  // ── Render rows (column-based structure) ────────────────────────────────────
   function renderProjectGroup(proj: Project, isPinned: boolean) {
     const sortedRows = [...proj.rows].sort((a, b) => a.order - b.order);
-    return (
-      <div key={proj.id} className={`${styles.gridGroup} ${isPinned ? styles.gridGroupPinned : ''}`}>
-        {sortedRows.map((row, ri) => {
-          const mem = state.members.find(m => m.id === row.memberId) ?? { id: '', name: '?', color: '#aaa' };
-          return (
-            <div key={row.id} className={`${styles.gridRow} ${ri === 0 ? styles.gridRowFirst : ''}`}>
-              {ganttDays.map((d, di) => {
-                const dstr = dk(d);
-                const nwd = isNWD(dstr, state.customNonWorkingDays, state.removedHolidays, d);
-                const arc = dstr <= state.view.archiveBefore;
-                const filled = !!row.cells[dstr];
-                const rowPins = state.pins[row.id]?.[dstr] ?? [];
 
-                return (
-                  <GanttCell
-                    key={dstr}
-                    dstr={dstr}
-                    di={di}
-                    rowId={row.id}
-                    filled={filled}
-                    color={mem.color}
-                    isNwd={nwd}
-                    isArc={arc}
-                    isWknd={isWknd(d)}
-                    isToday={dstr === today}
-                    pins={rowPins}
-                    cellRef={el => {
-                      const key = buildCellKey(row.id, dstr);
-                      if (el) {
-                        cellMapRef.current.set(key, el);
-                        // attach dataset for touch events
-                        el.dataset['dk'] = dstr;
-                        el.dataset['rowId'] = row.id;
-                        el.dataset['di'] = String(di);
-                        el.dataset['ganttCell'] = '1';
-                      } else {
-                        cellMapRef.current.delete(key);
-                      }
-                    }}
-                    onMouseDown={handleCellMouseDown}
-                    onMouseEnter={handleCellMouseEnter}
-                    onMouseLeave={handleCellMouseLeave}
-                    onTouchStart={handleCellTouchStart}
-                    onDblClick={handleCellDblClick}
-                    onContextMenu={handleCellContextMenu}
-                    onPinResize={handlePinResizeStart}
-                    onPinDelete={handlePinDelete}
-                    onPinEdit={handlePinEdit}
-                  />
-                );
-              })}
-            </div>
-          );
-        })}
-        <div className={styles.gridSpacer} />
+    return (
+      <div
+        key={proj.id}
+        className={styles.gridGroupWrap}
+        data-proj-id={proj.id}
+        data-grid-wrap="1"
+      >
+        <div
+          className={`${styles.gridGroup} ${isPinned ? styles.gridGroupPinned : ''}`}
+          data-grid-group="1"
+        >
+          {ganttDays.map((d, di) => {
+            const dstr = dk(d);
+            const nwd = isNWD(dstr, state.customNonWorkingDays, state.removedHolidays, d);
+            const arc = dstr <= state.view.archiveBefore;
+
+            return (
+              <div key={dstr} className={styles.gridCol} data-grid-col="1">
+                {sortedRows.map((row, ri) => {
+                  const mem = state.members.find(m => m.id === row.memberId) ?? { id: '', name: '?', color: '#aaa' };
+                  const filled = !!row.cells[dstr];
+                  const rowPins = state.pins[row.id]?.[dstr] ?? [];
+
+                  return (
+                    <GanttCell
+                      key={row.id}
+                      dstr={dstr}
+                      di={di}
+                      rowId={row.id}
+                      filled={filled}
+                      color={mem.color}
+                      isNwd={nwd}
+                      isArc={arc}
+                      isWknd={isWknd(d)}
+                      isToday={dstr === today}
+                      isFirstRow={ri === 0}
+                      pins={rowPins}
+                      cellRef={el => {
+                        const key = buildCellKey(row.id, dstr);
+                        if (el) {
+                          cellMapRef.current.set(key, el);
+                          el.dataset['dk'] = dstr;
+                          el.dataset['rowId'] = row.id;
+                          el.dataset['di'] = String(di);
+                          el.dataset['ganttCell'] = '1';
+                        } else {
+                          cellMapRef.current.delete(key);
+                        }
+                      }}
+                      onMouseDown={handleCellMouseDown}
+                      onMouseEnter={handleCellMouseEnter}
+                      onMouseLeave={handleCellMouseLeave}
+                      onTouchStart={handleCellTouchStart}
+                      onDblClick={handleCellDblClick}
+                      onContextMenu={handleCellContextMenu}
+                      onPinResize={handlePinResizeStart}
+                      onPinDelete={handlePinDelete}
+                      onPinEdit={handlePinEdit}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <div className={styles.gridSpacer} data-grid-spacer="1" />
       </div>
     );
   }
