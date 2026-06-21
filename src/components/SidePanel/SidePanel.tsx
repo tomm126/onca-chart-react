@@ -51,8 +51,12 @@ function ProjectForm({ projectId }: { projectId?: string }) {
   const [pages, setPages] = useState(proj?.pages ?? '');
   const [start, setStart] = useState(proj?.start ?? '');
   const [deadline, setDeadline] = useState(proj?.deadline ?? '');
-  const [m1, setM1] = useState(state.members[0]?.id ?? '');
-  const [m2, setM2] = useState('');
+  const defM1 = state.members.find(m => m.id === 'm13')?.id ?? state.members[0]?.id ?? '';
+  const defM2 = state.members.find(m => m.id === 'm14')?.id ?? state.members[1]?.id ?? '';
+  const defM3 = state.members.find(m => m.id === 'm15')?.id ?? '';
+  const [m1, setM1] = useState(defM1);
+  const [m2, setM2] = useState(defM2);
+  const [m3, setM3] = useState(defM3);
 
   const handleOk = () => {
     if (!name.trim()) return;
@@ -60,7 +64,7 @@ function ProjectForm({ projectId }: { projectId?: string }) {
     if (proj) {
       dispatch({ type: 'UPDATE_PROJECT', id: proj.id, patch: { name: name.trim(), pages, start, deadline } });
     } else {
-      const memberIds = m2 ? [m1, m2] : [m1];
+      const memberIds = [m1, m2, m3].filter(Boolean);
       dispatch({ type: 'ADD_PROJECT', name: name.trim(), pages, start, deadline, memberIds });
     }
     setPanel({ type: 'none' });
@@ -100,8 +104,14 @@ function ProjectForm({ projectId }: { projectId?: string }) {
             </select>
           </div>
           <div className={styles.fg}>
-            <label>担当2（任意）</label>
+            <label>担当2</label>
             <select value={m2} onChange={e => setM2(e.target.value)}>
+              {state.members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </div>
+          <div className={styles.fg}>
+            <label>担当3（任意）</label>
+            <select value={m3} onChange={e => setM3(e.target.value)}>
               <option value="">なし</option>
               {state.members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>

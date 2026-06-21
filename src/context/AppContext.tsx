@@ -23,6 +23,9 @@ export function makeInitialState(): AppState {
       { id: 'm8', name: '小川', color: '#4a7fd4' },
       { id: 'm9', name: '武田', color: '#c8b040' },
       { id: 'm10', name: '小金丸', color: '#a0a0a0' },
+      { id: 'm13', name: 'ディレクター', color: '#878787' },
+      { id: 'm14', name: 'デザイナー', color: '#878787' },
+      { id: 'm15', name: 'エンジニア', color: '#878787' },
     ],
     projects: [
       { id: 'p1', name: 'メディカル在宅（追加）', pages: '', start: '', deadline: 'なし', order: 0, status: 'active', pinned: false, rows: [{ id: 'r1', memberId: 'm4', order: 0, cells: {} }, { id: 'r2', memberId: 'm5', order: 1, cells: {} }] },
