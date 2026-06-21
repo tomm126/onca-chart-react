@@ -228,7 +228,7 @@ function ProjectGroup({
             </div>
 
             {/* Member rows: one per member, with row D&D */}
-            <div className={styles.memberRows}>
+            <div className={styles.memberRows} data-member-rows="1">
               {sortedRows.map(row => {
                 const mem = getMem(row.memberId);
                 const rowCls = [
