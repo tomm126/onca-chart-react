@@ -175,7 +175,7 @@ function ProjectGroup({
                 <div
                   className={`${styles.cell} ${styles.cellName} ${isSecond ? styles.cellNameSecond : ''} ${editingField === `name-${proj.id}` ? styles.editing : ''}`}
                   onClick={!isSecond ? handleNameClick : undefined}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`name-${proj.id}`); } : undefined}
+                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`name-${proj.id}`); } : undefined}
                   title={proj.name}
                 >
                   {editingField === `name-${proj.id}` && !isSecond ? (
@@ -197,7 +197,7 @@ function ProjectGroup({
                 {/* ページ数 */}
                 <div
                   className={`${styles.cell} ${styles.cellPages} ${isSecond ? styles.cellPagesSecond : ''} ${editingField === `pages-${proj.id}` && !isSecond ? styles.editing : ''}`}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`pages-${proj.id}`); } : undefined}
+                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`pages-${proj.id}`); } : undefined}
                 >
                   {editingField === `pages-${proj.id}` && !isSecond ? (
                     <InlineCellEdit value={proj.pages} onCommit={v => commitEdit('pages', v)} onCancel={() => setEditingField(null)} />
@@ -207,7 +207,7 @@ function ProjectGroup({
                 {/* 開始 */}
                 <div
                   className={`${styles.cell} ${styles.cellStart} ${isSecond ? styles.cellStartSecond : ''} ${!isSecond && isStartOverdue(proj.start) ? styles.cellStartOverdue : ''} ${editingField === `start-${proj.id}` && !isSecond ? styles.editing : ''}`}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`start-${proj.id}`); } : undefined}
+                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`start-${proj.id}`); } : undefined}
                 >
                   {editingField === `start-${proj.id}` && !isSecond ? (
                     <InlineCellEdit value={proj.start} onCommit={v => commitEdit('start', v)} onCancel={() => setEditingField(null)} />
@@ -217,7 +217,7 @@ function ProjectGroup({
                 {/* 期限 */}
                 <div
                   className={`${styles.cell} ${styles.cellDead} ${isSecond ? styles.cellDeadSecond : ''} ${editingField === `deadline-${proj.id}` && !isSecond ? styles.editing : ''}`}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`deadline-${proj.id}`); } : undefined}
+                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`deadline-${proj.id}`); } : undefined}
                 >
                   {editingField === `deadline-${proj.id}` && !isSecond ? (
                     <InlineCellEdit value={proj.deadline} onCommit={v => commitEdit('deadline', v)} onCancel={() => setEditingField(null)} />
