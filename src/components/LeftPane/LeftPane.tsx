@@ -56,6 +56,11 @@ function ProjectGroup({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [dragPosition, setDragPosition] = useState<'top' | 'bottom' | null>(null);
 
+  // Row D&D state (#88)
+  const rowDragRef = useRef<{ rowId: string } | null>(null);
+  const [draggingRowId, setDraggingRowId] = useState<string | null>(null);
+  const [rowDragOverMap, setRowDragOverMap] = useState<Record<string, 'top' | 'bottom'>>({});
+
   const getMem = useCallback((id: string) => {
     return state.members.find(m => m.id === id) ?? { id: '', name: '?', color: '#aaa' };
   }, [state.members]);
@@ -222,16 +227,70 @@ function ProjectGroup({
               </div>
             </div>
 
-            {/* Member rows: one per member */}
+            {/* Member rows: one per member, with row D&D */}
             <div className={styles.memberRows}>
               {sortedRows.map(row => {
                 const mem = getMem(row.memberId);
+                const rowCls = [
+                  styles.lpRow,
+                  draggingRowId === row.id ? styles.rowDragging : '',
+                  rowDragOverMap[row.id] === 'top' ? styles.rowDragOverTop : '',
+                  rowDragOverMap[row.id] === 'bottom' ? styles.rowDragOverBottom : '',
+                ].filter(Boolean).join(' ');
                 return (
-                  <div key={row.id} className={styles.lpRow} data-row-id={row.id}>
+                  <div
+                    key={row.id}
+                    className={rowCls}
+                    data-row-id={row.id}
+                    onDragOver={e => {
+                      if (!rowDragRef.current || rowDragRef.current.rowId === row.id) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const pos: 'top' | 'bottom' = e.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom';
+                      setRowDragOverMap({ [row.id]: pos });
+                    }}
+                    onDragLeave={() => {
+                      setRowDragOverMap(prev => { const n = { ...prev }; delete n[row.id]; return n; });
+                    }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const d = rowDragRef.current;
+                      if (!d || d.rowId === row.id) return;
+                      const pos = rowDragOverMap[row.id];
+                      const before = pos === 'top';
+                      setRowDragOverMap({});
+                      rowDragRef.current = null;
+                      setDraggingRowId(null);
+                      saveHistory();
+                      const rows = [...proj.rows].sort((a, b) => a.order - b.order);
+                      const fi = rows.findIndex(r => r.id === d.rowId);
+                      const ti = rows.findIndex(r => r.id === row.id);
+                      if (fi < 0 || ti < 0) return;
+                      const moved = rows.splice(fi, 1)[0];
+                      rows.splice(before ? ti - (fi < ti ? 1 : 0) : ti + (fi > ti ? 1 : 0), 0, moved);
+                      dispatch({ type: 'REORDER_ROWS', projectId: proj.id, orderedIds: rows.map(r => r.id) });
+                    }}
+                  >
                     <div className={`${styles.cell} ${styles.cellMember}`}>
                       <span
                         className={styles.memberTag}
-                        style={{ color: mem.color, background: `${mem.color}18` }}
+                        data-member-tag=""
+                        draggable
+                        style={{ color: mem.color, background: `${mem.color}18`, cursor: 'grab' }}
+                        onDragStart={e => {
+                          e.stopPropagation();
+                          e.dataTransfer.effectAllowed = 'move';
+                          e.dataTransfer.setData('text/plain', 'row');
+                          rowDragRef.current = { rowId: row.id };
+                          setTimeout(() => setDraggingRowId(row.id), 0);
+                        }}
+                        onDragEnd={() => {
+                          rowDragRef.current = null;
+                          setDraggingRowId(null);
+                          setRowDragOverMap({});
+                        }}
                         onClick={e => handleMemberTagClick(e, row)}
                       >
                         {mem.name}

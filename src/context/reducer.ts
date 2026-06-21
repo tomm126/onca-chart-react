@@ -10,6 +10,7 @@ export type Action =
   | { type: 'ADD_ROW'; projectId: string; memberId: string }
   | { type: 'UPDATE_ROW'; projectId: string; rowId: string; memberId: string }
   | { type: 'DELETE_ROW'; projectId: string; rowId: string }
+  | { type: 'REORDER_ROWS'; projectId: string; orderedIds: string[] }
   | { type: 'SET_CELLS'; rowId: string; dates: string[]; value: boolean }
   | { type: 'CLEAR_CELLS'; rowId: string }
   | { type: 'SHIFT_CELLS'; rowId: string; days: number }
@@ -20,6 +21,7 @@ export type Action =
   | { type: 'RESIZE_PIN'; rowId: string; dateStr: string; pinId: string; span: number }
   | { type: 'DELETE_PIN'; rowId: string; dateStr: string; pinId: string }
   | { type: 'UPDATE_PIN_LABEL'; rowId: string; dateStr: string; pinId: string; label: string }
+  | { type: 'MOVE_PIN'; rowId: string; fromDk: string; toDk: string; pinId: string }
   | { type: 'ADD_NWD'; dateStr: string }
   | { type: 'REMOVE_NWD'; dateStr: string; isDefaultNWD: boolean }
   | { type: 'SET_ARCHIVE_BEFORE'; dateStr: string }
@@ -79,6 +81,20 @@ export function reducer(state: AppState, action: Action): AppState {
         p => p.pinned !== pinned || !orderedIds.includes(p.id),
       );
       return { ...state, projects: [...others, ...reordered] };
+    }
+
+    case 'REORDER_ROWS': {
+      return {
+        ...state,
+        projects: state.projects.map(p => {
+          if (p.id !== action.projectId) return p;
+          const reordered = action.orderedIds.map((id, i) => {
+            const row = p.rows.find(r => r.id === id)!;
+            return { ...row, order: i };
+          });
+          return { ...p, rows: reordered };
+        }),
+      };
     }
 
     case 'ADD_ROW': {
@@ -219,9 +235,27 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, pins };
     }
 
+    case 'MOVE_PIN': {
+      const pins = JSON.parse(JSON.stringify(state.pins)) as AppState['pins'];
+      const fromPins = pins[action.rowId]?.[action.fromDk];
+      if (!fromPins) return state;
+      const pinObj = fromPins.find(p => p.id === action.pinId);
+      if (!pinObj) return state;
+      pins[action.rowId][action.fromDk] = fromPins.filter(p => p.id !== action.pinId);
+      if (!pins[action.rowId][action.fromDk].length) delete pins[action.rowId][action.fromDk];
+      if (!pins[action.rowId][action.toDk]) pins[action.rowId][action.toDk] = [];
+      pins[action.rowId][action.toDk].push(pinObj);
+      return { ...state, pins };
+    }
+
     case 'ADD_NWD':
       if (state.customNonWorkingDays.includes(action.dateStr)) return state;
-      return { ...state, customNonWorkingDays: [...state.customNonWorkingDays, action.dateStr] };
+      return {
+        ...state,
+        customNonWorkingDays: [...state.customNonWorkingDays, action.dateStr],
+        // removedHolidays から除去して土日/祝日を非稼働日に戻せるようにする
+        removedHolidays: state.removedHolidays.filter(d => d !== action.dateStr),
+      };
 
     case 'REMOVE_NWD': {
       const customNonWorkingDays = state.customNonWorkingDays.filter(d => d !== action.dateStr);

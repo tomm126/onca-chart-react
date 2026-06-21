@@ -9,12 +9,8 @@ export function useVisibleProjects(
   return useMemo(() => {
     let projs = projects;
     if (filterMembers.size > 0) {
-      projs = projs
-        .filter(p => p.rows.some(r => filterMembers.has(r.memberId)))
-        .map(p => ({
-          ...p,
-          rows: p.rows.filter(r => filterMembers.has(r.memberId)).map(r => ({ ...r, cells: { ...r.cells } })),
-        }));
+      // 選択メンバーを含む案件の全行を表示（行単位ではなく案件単位でフィルタ）
+      projs = projs.filter(p => p.rows.some(r => filterMembers.has(r.memberId)));
     }
     const norm = projs
       .filter(p => !p.pinned && (showDone || p.status !== 'done'))
