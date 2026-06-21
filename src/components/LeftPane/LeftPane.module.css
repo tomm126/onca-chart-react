@@ -72,9 +72,7 @@
 }
 
 /* group */
-.group {
-  border-bottom: 1px solid var(--border);
-}
+.group {}
 
 .groupPinned {
   background: var(--pinned-bg);
@@ -89,17 +87,19 @@
   width: var(--handle-w);
   flex-shrink: 0;
   border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text3);
   font-size: 10px;
   cursor: grab;
+  align-self: stretch;
 }
 
 .groupHandle:active { cursor: grabbing; }
 
-.groupRows { flex: 1; overflow: hidden; }
+.groupRows { flex: 1; overflow: hidden; border-bottom: 1px solid var(--border); }
 
 /* row */
 .row {

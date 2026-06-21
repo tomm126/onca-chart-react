@@ -92,10 +92,10 @@
   min-height: 100%;
 }
 
-.gridGroup { border-bottom: 1px solid var(--border); }
+.gridGroup { border-top: 1px solid var(--border); }
 .gridGroupPinned { background: var(--pinned-bg); }
 .gridSep { height: 24px; background: var(--surface3); border-top: 1px solid var(--border2); border-bottom: 1px solid var(--border2); }
-.gridSpacer { height: var(--add-row-h); }
+.gridSpacer { height: var(--add-row-h); width: 100%; border-top: 1px dashed transparent; }
 
 .gridRow { height: var(--row-h); display: flex; }
 .gridRowFirst .gridCell { border-top: 1px solid #ccc9c0; }
