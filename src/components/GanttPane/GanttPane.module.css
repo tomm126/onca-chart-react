@@ -79,9 +79,9 @@
 
 .dayCell:hover { background: var(--surface2); }
 
-.sat { color: #5080c0; }
-.sun, .hol { color: #c05050; }
-.nwdHdr { background: var(--nwd-bg) !important; color: var(--text3); }
+.sat { color: #3b7dd8; }
+.sun, .hol { color: #c0392b; }
+.nwdHdr { background: var(--nwd-bg) !important; }
 .arcHdr { background: #eceae3; color: #b0aea6; }
 .todayHdr { background: var(--today-bg); color: var(--today-line); font-weight: 500; }
 
