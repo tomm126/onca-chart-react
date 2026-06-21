@@ -1,4 +1,4 @@
-import { HOLIDAYS } from '../constants/holidays';
+import { getHolidays } from './holidayCache';
 
 export function dk(d: Date): string {
   const y = d.getFullYear();
@@ -23,7 +23,7 @@ export function isWknd(d: Date): boolean {
 }
 
 export function isHol(d: Date): boolean {
-  return HOLIDAYS.has(dk(d));
+  return getHolidays().has(dk(d));
 }
 
 export function isNWD(

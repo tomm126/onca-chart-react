@@ -237,9 +237,14 @@
 .statusTestup .cellName { background: var(--status-testup); }
 .statusDone .cellName { background: var(--status-done); color: var(--text3); }
 
-/* drag over */
+/* drag over (project group) */
 .dragOverTop { border-top: 2px solid var(--today-line); }
 .dragOverBottom { border-bottom: 2px solid var(--today-line); }
+
+/* row D&D (#88) */
+.rowDragging { opacity: 0.35; }
+.rowDragOverTop { box-shadow: inset 0 2px 0 var(--today-line); }
+.rowDragOverBottom { box-shadow: inset 0 -2px 0 var(--today-line); }
 
 /* inline edit */
 .cellInlineInput {
