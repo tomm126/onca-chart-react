@@ -42,18 +42,36 @@ export function getGanttStartDate(): Date {
   return addD(new Date(), -14);
 }
 
+function parseStartDate(startStr: string): Date | null {
+  if (!startStr) return null;
+  const m = startStr.match(/^(\d{4})[\/\-](\d{1,2})(?:[\/\-](\d{1,2}))?/);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2]) - 1, m[3] ? parseInt(m[3]) : 1);
+  const d = new Date(startStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+export function getElapsedDays(startStr: string): number | null {
+  const d = parseStartDate(startStr);
+  if (!d) return null;
+  return Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+export function formatStartCell(startStr: string): string {
+  if (!startStr) return '';
+  const days = getElapsedDays(startStr);
+  if (days === null || days < 0) return startStr;
+  const months = Math.floor(days / 30);
+  const remDays = days % 30;
+  const elapsed = months > 0 ? `${months}m ${remDays}d` : `${days}d`;
+  return `${startStr}\n(${elapsed})`;
+}
+
 export function isStartOverdue(startStr: string): boolean {
   if (!startStr) return false;
-  let d: Date;
-  const m = startStr.match(/^(\d{4})[\/\-](\d{1,2})(?:[\/\-](\d{1,2}))?/);
-  if (m) {
-    d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, m[3] ? parseInt(m[3]) : 1);
-  } else {
-    d = new Date(startStr);
-  }
-  if (isNaN(d.getTime())) return false;
+  const d = parseStartDate(startStr);
+  if (!d || isNaN(d.getTime())) return false;
   const ago = new Date();
-  ago.setMonth(ago.getMonth() - 3);
+  ago.setMonth(ago.getMonth() - 6);
   return d <= ago;
 }
 

@@ -72,9 +72,7 @@
 }
 
 /* group */
-.group {
-  /* border-bottom is on groupRows/groupHandle for alignment with gridGroupWrap */
-}
+.group {}
 
 .groupPinned {
   background: var(--pinned-bg);
@@ -159,11 +157,14 @@
 .cellName {
   width: var(--col-name);
   border-right: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text);
   cursor: pointer;
   transition: background .1s;
+  overflow: hidden;
+  padding: 0;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: flex-start;
   position: relative;
 }
@@ -176,6 +177,7 @@
   justify-content: flex-start;
   width: 100%;
   overflow: hidden;
+  padding: 3px 5px;
 }
 
 .nameText {
@@ -184,8 +186,6 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-all;
-  font-size: 12px;
-  line-height: 1.4;
 }
 
 .statusLabel {
@@ -204,8 +204,7 @@
   color: var(--text3);
 }
 
-.cellStart,
-.cellDead {
+.cellStart {
   width: var(--col-start);
   border-right: 1px solid var(--border);
   font-size: 10px;
@@ -217,11 +216,20 @@
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  padding: 3px 5px;
+  align-items: flex-start;
+}
+
+.cellDead {
+  width: var(--col-dead);
+  border-right: 1px solid var(--border);
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text3);
+  white-space: nowrap;
 }
 
 .cellStartOverdue { color: #c0392b; font-weight: 600; }
-
-.cellDead { width: var(--col-dead); }
 
 .cellMember { width: var(--col-member); }
 
@@ -241,7 +249,7 @@
   height: var(--add-row-h);
   display: flex;
   align-items: center;
-  padding: 0 5px 0 calc(var(--handle-w) + 5px);
+  padding: 0 5px 0 calc(14px + 5px);
   font-size: 10px;
   color: var(--text3);
   cursor: pointer;

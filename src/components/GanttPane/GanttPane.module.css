@@ -96,12 +96,12 @@
 .gridGroupWrap {
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--border);
 }
 
 .gridGroup {
   display: flex;
   flex-direction: row;
+  border-top: 1px solid var(--border);
 }
 
 .gridGroupPinned { background: var(--pinned-bg); }

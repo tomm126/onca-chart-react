@@ -4,7 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useVisibleProjects } from '../../hooks/useVisibleProjects';
 import type { Project, Row, Status } from '../../types';
 import { STATUS_LABELS } from '../../constants/palette';
-import { isStartOverdue } from '../../utils/date';
+import { isStartOverdue, formatStartCell } from '../../utils/date';
 import styles from './LeftPane.module.css';
 
 interface LeftPaneProps {
@@ -177,7 +177,7 @@ function ProjectGroup({
               <div
                 className={`${styles.cell} ${styles.cellName} ${editingField === `name-${proj.id}` ? styles.editing : ''}`}
                 onClick={handleNameClick}
-                onDoubleClick={e => { e.stopPropagation(); setEditingField(`name-${proj.id}`); }}
+                onDoubleClick={e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`name-${proj.id}`); }}
                 title={proj.name}
               >
                 {editingField === `name-${proj.id}` ? (
@@ -199,7 +199,7 @@ function ProjectGroup({
               {/* P数 */}
               <div
                 className={`${styles.cell} ${styles.cellPages} ${editingField === `pages-${proj.id}` ? styles.editing : ''}`}
-                onDoubleClick={e => { e.stopPropagation(); setEditingField(`pages-${proj.id}`); }}
+                onDoubleClick={e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`pages-${proj.id}`); }}
               >
                 {editingField === `pages-${proj.id}` ? (
                   <InlineCellEdit value={proj.pages} onCommit={v => commitEdit('pages', v)} onCancel={() => setEditingField(null)} />
@@ -209,17 +209,17 @@ function ProjectGroup({
               {/* 制作開始 */}
               <div
                 className={`${styles.cell} ${styles.cellStart} ${isStartOverdue(proj.start) ? styles.cellStartOverdue : ''} ${editingField === `start-${proj.id}` ? styles.editing : ''}`}
-                onDoubleClick={e => { e.stopPropagation(); setEditingField(`start-${proj.id}`); }}
+                onDoubleClick={e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`start-${proj.id}`); }}
               >
                 {editingField === `start-${proj.id}` ? (
                   <InlineCellEdit value={proj.start} onCommit={v => commitEdit('start', v)} onCancel={() => setEditingField(null)} />
-                ) : proj.start}
+                ) : formatStartCell(proj.start)}
               </div>
 
               {/* 期限 */}
               <div
                 className={`${styles.cell} ${styles.cellDead} ${editingField === `deadline-${proj.id}` ? styles.editing : ''}`}
-                onDoubleClick={e => { e.stopPropagation(); setEditingField(`deadline-${proj.id}`); }}
+                onDoubleClick={e => { e.stopPropagation(); e.preventDefault(); setContextMenu(prev => ({ ...prev, visible: false })); setEditingField(`deadline-${proj.id}`); }}
               >
                 {editingField === `deadline-${proj.id}` ? (
                   <InlineCellEdit value={proj.deadline} onCommit={v => commitEdit('deadline', v)} onCancel={() => setEditingField(null)} />
