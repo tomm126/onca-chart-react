@@ -228,6 +228,8 @@ const GanttCell = React.memo(function GanttCell({
   onPinResize,
   onPinContextMenu,
   onPinEdit,
+  onPinDragStart,
+  onPinDragEnd,
 }: {
   dstr: string;
   di: number;
