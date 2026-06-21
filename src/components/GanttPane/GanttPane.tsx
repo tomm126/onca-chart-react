@@ -66,6 +66,7 @@ const DateHeader = React.memo(function DateHeader({
           const nwd = isNWD(dstr, customNonWorkingDays, removedHolidays, d);
           const arc = dstr <= archiveBefore;
           const dw = d.getDay();
+          const isTodayHdr = !nwd && !arc && dstr === today;
           let cls = styles.dayCell;
           if (nwd) cls += ' ' + styles.nwdHdr;
           else if (arc) cls += ' ' + styles.arcHdr;
@@ -75,11 +76,13 @@ const DateHeader = React.memo(function DateHeader({
             else if (dw === 0) cls += ' ' + styles.sun;
             else if (isHol(d)) cls += ' ' + styles.hol;
           }
-          if (!nwd && !arc && dstr === today) cls += ' ' + styles.todayHdr;
+          if (isTodayHdr) cls += ' ' + styles.todayHdr;
           return (
             <div
               key={dstr}
               className={cls}
+              data-day-hdr={dstr}
+              {...(isTodayHdr ? { 'data-today-hdr': '' } : {})}
               onContextMenu={e => { e.preventDefault(); onDayContextMenu(e, dstr, d); }}
             >
               <span>{d.getDate()}</span>
@@ -269,6 +272,30 @@ export const GanttPane = React.memo(function GanttPane({
   const today = todayStr();
   const cellMapRef = useRef<CellMap>(new Map());
 
+  // ── Cross highlight (#86) ────────────────────────────────────────────────────
+  const hoveredDkRef = useRef<string | null>(null);
+  const hoveredRowIdRef = useRef<string | null>(null);
+
+  const clearCrossHighlight = useCallback(() => {
+    if (hoveredDkRef.current) {
+      document.querySelector(`[data-day-hdr="${hoveredDkRef.current}"]`)?.classList.remove('col-hover-hdr');
+      hoveredDkRef.current = null;
+    }
+    if (hoveredRowIdRef.current) {
+      document.querySelector(`[data-lp-row="${hoveredRowIdRef.current}"]`)?.classList.remove('row-hover-lp');
+      hoveredRowIdRef.current = null;
+    }
+  }, []);
+
+  const applyCrossHighlight = useCallback((dstr: string, rowId: string) => {
+    if (hoveredDkRef.current === dstr && hoveredRowIdRef.current === rowId) return;
+    clearCrossHighlight();
+    hoveredDkRef.current = dstr;
+    hoveredRowIdRef.current = rowId;
+    document.querySelector(`[data-day-hdr="${dstr}"]`)?.classList.add('col-hover-hdr');
+    document.querySelector(`[data-lp-row="${rowId}"]`)?.classList.add('row-hover-lp');
+  }, [clearCrossHighlight]);
+
   // ── Drag paint ──────────────────────────────────────────────────────────────
   const drag = useRef<{ on: boolean; rowId: string | null; painting: boolean; lastIdx: number }>({
     on: false, rowId: null, painting: false, lastIdx: -1,
@@ -303,6 +330,7 @@ export const GanttPane = React.memo(function GanttPane({
           const mem = state.members.find(m => m.id === row.memberId) ?? { color: '#aaa' };
           el.style.background = `rgba(${hexToRgb(mem.color)},.10)`;
         }
+        applyCrossHighlight(dstr, rowId);
       }
       return;
     }
@@ -323,7 +351,7 @@ export const GanttPane = React.memo(function GanttPane({
       }
       drag.current.lastIdx = di;
     });
-  }, [ganttDays, state.customNonWorkingDays, state.removedHolidays, state.projects, state.members, applyCell]);
+  }, [ganttDays, state.customNonWorkingDays, state.removedHolidays, state.projects, state.members, applyCell, applyCrossHighlight]);
 
   const handleCellMouseLeave = useCallback((el: HTMLDivElement, dstr: string) => {
     if (!drag.current.on) {
@@ -633,7 +661,7 @@ export const GanttPane = React.memo(function GanttPane({
           onDayContextMenu={handleDayContextMenu}
         />
 
-        <div className={styles.rowsArea}>
+        <div className={styles.rowsArea} onMouseLeave={clearCrossHighlight}>
           {norm.map(proj => renderProjectGroup(proj, false))}
           {pinnedProjects.length > 0 && (
             <>

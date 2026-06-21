@@ -1,0 +1,1195 @@
+{
+  "version": "1.0",
+  "meta": {
+    "createdAt": "2026-06-04T03:30:45.089591",
+    "updatedAt": "2026-06-04T03:46:29.964076"
+  },
+  "members": [
+    {
+      "id": "m1",
+      "name": "幸松",
+      "color": "#6aaa6a"
+    },
+    {
+      "id": "m2",
+      "name": "伊藤",
+      "color": "#9b6dcc"
+    },
+    {
+      "id": "m3",
+      "name": "高橋",
+      "color": "#e08c1a"
+    },
+    {
+      "id": "m4",
+      "name": "城山",
+      "color": "#2ab5a0"
+    },
+    {
+      "id": "m5",
+      "name": "濱井",
+      "color": "#e07aaa"
+    },
+    {
+      "id": "m6",
+      "name": "菅原",
+      "color": "#7090c8"
+    },
+    {
+      "id": "m7",
+      "name": "水野",
+      "color": "#d95555"
+    },
+    {
+      "id": "m8",
+      "name": "小川",
+      "color": "#4a7fd4"
+    },
+    {
+      "id": "m9",
+      "name": "武田",
+      "color": "#c8b040"
+    },
+    {
+      "id": "m10",
+      "name": "小金丸",
+      "color": "#a0a0a0"
+    },
+    {
+      "id": "m11",
+      "name": "堀口",
+      "color": "#e8a060"
+    },
+    {
+      "id": "m12",
+      "name": "北山",
+      "color": "#5a9090"
+    },
+    {
+      "id": "m13",
+      "name": "ディレクター",
+      "color": "#ffffff"
+    },
+    {
+      "id": "m14",
+      "name": "デザイナー",
+      "color": "#ffffff"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p1",
+      "name": "メディカル在宅（追加）",
+      "pages": "",
+      "start": "",
+      "deadline": "なし",
+      "order": 0,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r2",
+          "memberId": "m11",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r3",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p4",
+      "name": "ひらばり眼科",
+      "pages": "18P",
+      "start": "2026/6公開予定",
+      "deadline": "なし",
+      "order": 1,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r5",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r6",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p7",
+      "name": "自社基本仕様書（パワポ）",
+      "pages": "",
+      "start": "",
+      "deadline": "なし",
+      "order": 2,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r8",
+          "memberId": "m1",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r9",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {
+            "2026-06-01": true,
+            "2026-06-02": true,
+            "2026-06-03": true,
+            "2026-06-04": true,
+            "2026-06-05": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "name": "オークツリー",
+      "pages": "",
+      "start": "2024-09-01 00:00:00",
+      "deadline": "なし",
+      "order": 3,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r11",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r12",
+          "memberId": "m10",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p13",
+      "name": "浅田レディース（勝川）",
+      "pages": "",
+      "start": "2025-03-01 00:00:00",
+      "deadline": "なし",
+      "order": 4,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r14",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r15",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p16",
+      "name": "スバル東愛知販売",
+      "pages": "12P",
+      "start": "2025-02-01 00:00:00",
+      "deadline": "なし",
+      "order": 5,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r17",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r18",
+          "memberId": "m10",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p19",
+      "name": "セレンディップ",
+      "pages": "",
+      "start": "2025-04-01 00:00:00",
+      "deadline": "2026年5末公開",
+      "order": 6,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r20",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r21",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p22",
+      "name": "自社サイト",
+      "pages": "32P",
+      "start": "",
+      "deadline": "なし",
+      "order": 7,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r23",
+          "memberId": "m1",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r24",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-17": true,
+            "2026-06-18": true,
+            "2026-06-19": true,
+            "2026-07-06": true,
+            "2026-07-07": true,
+            "2026-07-08": true,
+            "2026-07-09": true,
+            "2026-07-10": true,
+            "2026-07-13": true,
+            "2026-07-14": true,
+            "2026-07-15": true,
+            "2026-07-16": true,
+            "2026-07-17": true
+          }
+        },
+        {
+          "id": "r25",
+          "memberId": "m12",
+          "order": 2,
+          "cells": {
+            "2026-06-02": true,
+            "2026-06-03": true,
+            "2026-06-04": true,
+            "2026-06-05": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p26",
+      "name": "浅田レディース（名古屋）",
+      "pages": "16P",
+      "start": "2025-06-01 00:00:00",
+      "deadline": "なし",
+      "order": 8,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r27",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r28",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p29",
+      "name": "福島中央どうぶつクリニック",
+      "pages": "13P",
+      "start": "2025-07-01 00:00:00",
+      "deadline": "なし",
+      "order": 9,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r30",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r31",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p32",
+      "name": "税理士法人エール名北会計",
+      "pages": "18P",
+      "start": "2025-08-01 00:00:00",
+      "deadline": "なし",
+      "order": 10,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r33",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r34",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {
+            "2026-06-01": true,
+            "2026-06-02": true
+          }
+        },
+        {
+          "id": "r35",
+          "memberId": "m12",
+          "order": 2,
+          "cells": {
+            "2026-06-08": true,
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true,
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-22": true,
+            "2026-06-23": true,
+            "2026-06-24": true,
+            "2026-06-25": true,
+            "2026-06-26": true,
+            "2026-06-29": true,
+            "2026-06-30": true,
+            "2026-07-01": true,
+            "2026-07-02": true,
+            "2026-07-03": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p36",
+      "name": "リッシュプラス",
+      "pages": "11P",
+      "start": "2025-08-01 00:00:00",
+      "deadline": "なし",
+      "order": 11,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r37",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r38",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p39",
+      "name": "山田美術印刷",
+      "pages": "2026-06-11 00:00:00",
+      "start": "2025-11-01 00:00:00",
+      "deadline": "なし",
+      "order": 12,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r40",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r41",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p42",
+      "name": "ビズライフ(東京)",
+      "pages": "2026-05-16 00:00:00",
+      "start": "2025-11-01 00:00:00",
+      "deadline": "なし",
+      "order": 13,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r43",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r44",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p45",
+      "name": "中部システムソリューションズ",
+      "pages": "2026-08-11 00:00:00",
+      "start": "2025-11-01 00:00:00",
+      "deadline": "なし",
+      "order": 14,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r46",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r47",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p48",
+      "name": "藤徳紙器",
+      "pages": "2026-07-11 00:00:00",
+      "start": "2025-12-01 00:00:00",
+      "deadline": "なし",
+      "order": 15,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r49",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r50",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p51",
+      "name": "春岡会",
+      "pages": "2026-07-09 00:00:00",
+      "start": "2026-01-01 00:00:00",
+      "deadline": "なし",
+      "order": 16,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r52",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r53",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p54",
+      "name": "カツベ歯科",
+      "pages": "18/21",
+      "start": "2026-01-01 00:00:00",
+      "deadline": "",
+      "order": 17,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r55",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r56",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p57",
+      "name": "オオサキメディカル(dacco)",
+      "pages": "2026-05-10 00:00:00",
+      "start": "2026-01-01 00:00:00",
+      "deadline": "2026/10公開",
+      "order": 18,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r58",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r59",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p60",
+      "name": "セントラルパシフィックトレーディング(CPT)",
+      "pages": "2026-06-11 00:00:00",
+      "start": "2026-01-01 00:00:00",
+      "deadline": "",
+      "order": 19,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r61",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r62",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p63",
+      "name": "浅田レディース（品川）",
+      "pages": "13/20",
+      "start": "2026-01-01 00:00:00",
+      "deadline": "なし（なる早、名古屋より早く）",
+      "order": 20,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r64",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r65",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p66",
+      "name": "いわくら内科・呼吸器内科クリニック",
+      "pages": "2026-11-14 00:00:00",
+      "start": "2026-02-01 00:00:00",
+      "deadline": "",
+      "order": 21,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r67",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r68",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {
+            "2026-06-08": true,
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true,
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-17": true,
+            "2026-06-18": true,
+            "2026-06-19": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p69",
+      "name": "pamphlet square（satellite works）",
+      "pages": "2026-04-08 00:00:00",
+      "start": "2026-03-01 00:00:00",
+      "deadline": "",
+      "order": 22,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r70",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r71",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {
+            "2026-06-08": true,
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true,
+            "2026-07-06": true,
+            "2026-07-07": true,
+            "2026-07-08": true,
+            "2026-07-09": true,
+            "2026-07-10": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p72",
+      "name": "チラシ・ザ・ワン（satellite works）",
+      "pages": "2026-03-07 00:00:00",
+      "start": "2026-04-01 00:00:00",
+      "deadline": "",
+      "order": 23,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r73",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r74",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {
+            "2026-06-01": true,
+            "2026-06-02": true,
+            "2026-06-03": true,
+            "2026-06-04": true,
+            "2026-06-05": true,
+            "2026-06-29": true,
+            "2026-06-30": true,
+            "2026-07-01": true,
+            "2026-07-02": true,
+            "2026-07-03": true,
+            "2026-07-13": true,
+            "2026-07-14": true,
+            "2026-07-15": true,
+            "2026-07-16": true,
+            "2026-07-17": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p75",
+      "name": "ビズライフ(コーポレート)",
+      "pages": "2026-04-07 00:00:00",
+      "start": "2026-03-01 00:00:00",
+      "deadline": "",
+      "order": 24,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r76",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r77",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {
+            "2026-06-04": true,
+            "2026-06-05": true,
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-17": true,
+            "2026-07-06": true,
+            "2026-07-07": true,
+            "2026-07-08": true,
+            "2026-07-09": true,
+            "2026-07-10": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p78",
+      "name": "岡田金属",
+      "pages": "2026-11-15 00:00:00",
+      "start": "2026-03-01 00:00:00",
+      "deadline": "",
+      "order": 25,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r79",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r80",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {
+            "2026-06-03": true,
+            "2026-06-04": true,
+            "2026-06-05": true,
+            "2026-06-08": true,
+            "2026-06-12": true,
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-22": true,
+            "2026-06-23": true,
+            "2026-06-24": true,
+            "2026-06-25": true,
+            "2026-06-26": true,
+            "2026-06-29": true,
+            "2026-06-30": true,
+            "2026-07-01": true,
+            "2026-07-02": true,
+            "2026-07-03": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p81",
+      "name": "伊勢パールピアホテル",
+      "pages": "13/16",
+      "start": "2026-04-01 00:00:00",
+      "deadline": "",
+      "order": 26,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r82",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r83",
+          "memberId": "m5",
+          "order": 1,
+          "cells": {
+            "2026-06-01": true,
+            "2026-06-02": true,
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true,
+            "2026-07-06": true,
+            "2026-07-07": true,
+            "2026-07-08": true,
+            "2026-07-09": true,
+            "2026-07-10": true,
+            "2026-07-13": true,
+            "2026-07-14": true,
+            "2026-07-15": true,
+            "2026-07-16": true,
+            "2026-07-17": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p84",
+      "name": "竹内組",
+      "pages": "14.0",
+      "start": "2026-06-01 00:00:00",
+      "deadline": "LP6月公開",
+      "order": 27,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r85",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {
+            "2026-06-05": true,
+            "2026-06-08": true,
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true,
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-17": true,
+            "2026-06-18": true,
+            "2026-06-19": true,
+            "2026-06-22": true,
+            "2026-06-23": true,
+            "2026-06-24": true,
+            "2026-06-25": true,
+            "2026-06-26": true,
+            "2026-06-29": true,
+            "2026-06-30": true,
+            "2026-07-01": true,
+            "2026-07-02": true
+          }
+        },
+        {
+          "id": "r86",
+          "memberId": "m7",
+          "order": 1,
+          "cells": {
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true,
+            "2026-06-29": true,
+            "2026-06-30": true,
+            "2026-07-01": true,
+            "2026-07-02": true,
+            "2026-07-03": true,
+            "2026-07-21": true,
+            "2026-07-22": true,
+            "2026-07-23": true,
+            "2026-07-24": true,
+            "2026-07-27": true,
+            "2026-07-28": true,
+            "2026-07-29": true,
+            "2026-07-30": true,
+            "2026-07-31": true,
+            "2026-08-24": true,
+            "2026-08-25": true,
+            "2026-08-26": true,
+            "2026-08-27": true,
+            "2026-08-28": true,
+            "2026-08-31": true,
+            "2026-09-01": true,
+            "2026-09-02": true,
+            "2026-09-03": true,
+            "2026-09-04": true
+          }
+        },
+        {
+          "id": "r87",
+          "memberId": "m12",
+          "order": 2,
+          "cells": {
+            "2026-06-17": true,
+            "2026-06-18": true,
+            "2026-06-19": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p88",
+      "name": "スグロ鉄鋼（LP）",
+      "pages": "1.0",
+      "start": "2026-06-01 00:00:00",
+      "deadline": "",
+      "order": 28,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r89",
+          "memberId": "m2",
+          "order": 0,
+          "cells": {
+            "2026-06-08": true,
+            "2026-06-09": true,
+            "2026-06-10": true,
+            "2026-06-11": true,
+            "2026-06-12": true
+          }
+        },
+        {
+          "id": "r90",
+          "memberId": "m6",
+          "order": 1,
+          "cells": {
+            "2026-06-22": true,
+            "2026-06-23": true,
+            "2026-06-24": true,
+            "2026-06-25": true,
+            "2026-06-26": true
+          }
+        },
+        {
+          "id": "r91",
+          "memberId": "m12",
+          "order": 2,
+          "cells": {
+            "2026-07-13": true,
+            "2026-07-14": true,
+            "2026-07-15": true,
+            "2026-07-16": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p92",
+      "name": "鳴浜工業",
+      "pages": "12.0",
+      "start": "2026-06-01 00:00:00",
+      "deadline": "",
+      "order": 29,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r93",
+          "memberId": "m3",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r94",
+          "memberId": "m8",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p95",
+      "name": "佐野ヒフ科（リニューアル）",
+      "pages": "12.0",
+      "start": "2026-06-01 00:00:00",
+      "deadline": "",
+      "order": 30,
+      "status": "active",
+      "pinned": false,
+      "rows": [
+        {
+          "id": "r96",
+          "memberId": "m4",
+          "order": 0,
+          "cells": {
+            "2026-06-29": true,
+            "2026-06-30": true,
+            "2026-07-01": true,
+            "2026-07-02": true,
+            "2026-07-03": true,
+            "2026-07-06": true,
+            "2026-07-07": true,
+            "2026-07-08": true,
+            "2026-07-09": true,
+            "2026-07-10": true,
+            "2026-07-13": true,
+            "2026-07-14": true,
+            "2026-07-15": true,
+            "2026-07-16": true,
+            "2026-07-17": true
+          }
+        },
+        {
+          "id": "r97",
+          "memberId": "m8",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p98",
+      "name": "コラム",
+      "pages": "",
+      "start": "",
+      "deadline": "",
+      "order": 31,
+      "status": "active",
+      "pinned": true,
+      "rows": [
+        {
+          "id": "r99",
+          "memberId": "m11",
+          "order": 0,
+          "cells": {
+            "2026-06-15": true,
+            "2026-06-16": true,
+            "2026-06-17": true,
+            "2026-06-18": true,
+            "2026-06-19": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "p_sotodai",
+      "name": "外大",
+      "pages": "",
+      "start": "",
+      "deadline": "",
+      "order": 32,
+      "status": "active",
+      "pinned": true,
+      "rows": [
+        {
+          "id": "r_p_sotodai_1",
+          "memberId": "m13",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r_p_sotodai_2",
+          "memberId": "m14",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p_gakugei",
+      "name": "学芸",
+      "pages": "",
+      "start": "",
+      "deadline": "",
+      "order": 33,
+      "status": "active",
+      "pinned": true,
+      "rows": [
+        {
+          "id": "r_p_gakugei_1",
+          "memberId": "m13",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r_p_gakugei_2",
+          "memberId": "m14",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p_teian",
+      "name": "提案用",
+      "pages": "",
+      "start": "",
+      "deadline": "",
+      "order": 34,
+      "status": "active",
+      "pinned": true,
+      "rows": [
+        {
+          "id": "r_p_teian_1",
+          "memberId": "m13",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r_p_teian_2",
+          "memberId": "m14",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    },
+    {
+      "id": "p_kako",
+      "name": "過去案件修正",
+      "pages": "",
+      "start": "",
+      "deadline": "",
+      "order": 35,
+      "status": "active",
+      "pinned": true,
+      "rows": [
+        {
+          "id": "r_p_kako_1",
+          "memberId": "m13",
+          "order": 0,
+          "cells": {}
+        },
+        {
+          "id": "r_p_kako_2",
+          "memberId": "m14",
+          "order": 1,
+          "cells": {}
+        }
+      ]
+    }
+  ],
+  "customNonWorkingDays": [],
+  "removedHolidays": [],
+  "pins": {},
+  "view": {
+    "archiveBefore": "2026-06-03",
+    "days": 210
+  }
+}

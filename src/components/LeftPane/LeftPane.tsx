@@ -170,7 +170,7 @@ function ProjectGroup({
             const statusLabelText = proj.status === 'submitted' ? 'coding' : proj.status === 'testup' ? 'test up' : '';
 
             return (
-              <div key={row.id} className={styles.row}>
+              <div key={row.id} className={styles.row} data-lp-row={row.id}>
                 {/* 名前 */}
                 <div
                   className={`${styles.cell} ${styles.cellName} ${isSecond ? styles.cellNameSecond : ''} ${editingField === `name-${proj.id}` ? styles.editing : ''}`}
@@ -228,6 +228,7 @@ function ProjectGroup({
                 <div className={`${styles.cell} ${styles.cellMember}`}>
                   <span
                     className={styles.memberTag}
+                    data-member-tag=""
                     style={{ color: mem.color, background: `${mem.color}18` }}
                     onClick={e => handleMemberTagClick(e, row)}
                   >
