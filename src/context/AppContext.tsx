@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useReducer, useRef, useCallback, useState } from 'react';
+import React, { createContext, useContext, useReducer, useRef, useCallback, useState, useEffect } from 'react';
 import type { AppState, PanelMode, ContextMenuState } from '../types';
 import type { Action } from './reducer';
 import { reducer, cloneState } from './reducer';
 import { dk, addD } from '../utils/date';
+import { initHolidays, getHolidays } from '../utils/holidayCache';
 
 const MAX_HISTORY = 50;
 
@@ -89,6 +90,8 @@ interface AppContextValue {
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
   toastMessage: string;
   showToast: (msg: string) => void;
+  /** 祝日データ（API取得後に更新、失敗時はハードコード値） */
+  holidays: Set<string>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -108,6 +111,11 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
   });
   const [toastMessage, setToastMessage] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [holidays, setHolidays] = useState<Set<string>>(getHolidays());
+
+  useEffect(() => {
+    initHolidays().then(h => setHolidays(h));
+  }, []);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -159,6 +167,7 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
       panel, setPanel,
       contextMenu, setContextMenu,
       toastMessage, showToast,
+      holidays,
     }}>
       {children}
     </AppContext.Provider>
