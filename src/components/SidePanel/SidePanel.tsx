@@ -12,13 +12,18 @@ function PaletteGrid({
   value: string;
   onChange: (color: string) => void;
 }) {
+  // sel済みスウォッチ → value（有効な6桁HEX）→ PALETTE[0] の優先順で初期値決定
+  const selSwatch = PALETTE.includes(value) ? value : null;
+  const safeValue = selSwatch
+    ?? (value && /^#[0-9a-fA-F]{6}$/.test(value) ? value : PALETTE[0]);
+
   return (
     <div>
       <div className={styles.paletteGrid}>
         {PALETTE.map(c => (
           <div
             key={c}
-            className={`${styles.pswatch} ${c === value ? styles.pswatchSel : ''}`}
+            className={`${styles.pswatch} ${c === safeValue ? styles.pswatchSel : ''}`}
             style={{ background: c }}
             onClick={() => onChange(c)}
           />
@@ -27,12 +32,12 @@ function PaletteGrid({
       <div className={styles.hexRow}>
         <input
           type="color"
-          value={value}
-          onChange={e => onChange(e.target.value)}
+          value={safeValue}
+          onChange={e => { if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) onChange(e.target.value); }}
         />
         <input
           type="text"
-          value={value}
+          value={safeValue}
           maxLength={7}
           placeholder="#000000"
           onChange={e => { if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) onChange(e.target.value); }}
