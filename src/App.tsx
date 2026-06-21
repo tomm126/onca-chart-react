@@ -37,6 +37,35 @@ function AppInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Height sync: align grid-group-wrap heights with lp-group heights after each render
+  React.useEffect(() => {
+    const timerId = setTimeout(() => {
+      document.querySelectorAll<HTMLElement>('[data-lp-group]').forEach(lg => {
+        const projId = lg.dataset.projId;
+        if (!projId) return;
+        const ggWrap = document.querySelector<HTMLElement>(`[data-grid-wrap][data-proj-id="${projId}"]`);
+        if (!ggWrap) return;
+        const lpH = lg.offsetHeight;
+        const gg = ggWrap.querySelector<HTMLElement>('[data-grid-group]');
+        const sp = ggWrap.querySelector<HTMLElement>('[data-grid-spacer]');
+        if (!gg || !sp) return;
+        const groupRowsEl = lg.querySelector<HTMLElement>('[data-lp-group-rows]');
+        const addRowEl = lg.querySelector<HTMLElement>('[data-lp-add-row]');
+        const groupRowsH = groupRowsEl?.offsetHeight ?? lpH;
+        const addRowH = addRowEl?.offsetHeight ?? 18;
+        const rowsH = groupRowsH - addRowH;
+        gg.style.height = rowsH + 'px';
+        gg.querySelectorAll<HTMLElement>('[data-grid-col]').forEach(col => {
+          col.style.height = rowsH + 'px';
+        });
+        const currentTotal = gg.offsetHeight + sp.offsetHeight;
+        const diff = lpH - currentTotal;
+        sp.style.height = (sp.offsetHeight + diff) + 'px';
+      });
+    }, 0);
+    return () => clearTimeout(timerId);
+  }); // no deps — run after every render
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <Toolbar scrollPaneRef={scrollPaneRef} ganttDays={ganttDays} />
