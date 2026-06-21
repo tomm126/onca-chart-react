@@ -32,10 +32,15 @@
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 5px;
+  font-family: 'Noto Sans JP', sans-serif;
   font-size: 11px;
   color: var(--text2);
+  cursor: pointer;
   transition: all .12s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .btn:hover {
