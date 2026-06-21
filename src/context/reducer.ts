@@ -10,6 +10,7 @@ export type Action =
   | { type: 'ADD_ROW'; projectId: string; memberId: string }
   | { type: 'UPDATE_ROW'; projectId: string; rowId: string; memberId: string }
   | { type: 'DELETE_ROW'; projectId: string; rowId: string }
+  | { type: 'REORDER_ROWS'; projectId: string; orderedIds: string[] }
   | { type: 'SET_CELLS'; rowId: string; dates: string[]; value: boolean }
   | { type: 'CLEAR_CELLS'; rowId: string }
   | { type: 'SHIFT_CELLS'; rowId: string; days: number }
@@ -79,6 +80,20 @@ export function reducer(state: AppState, action: Action): AppState {
         p => p.pinned !== pinned || !orderedIds.includes(p.id),
       );
       return { ...state, projects: [...others, ...reordered] };
+    }
+
+    case 'REORDER_ROWS': {
+      return {
+        ...state,
+        projects: state.projects.map(p => {
+          if (p.id !== action.projectId) return p;
+          const reordered = action.orderedIds.map((id, i) => {
+            const row = p.rows.find(r => r.id === id)!;
+            return { ...row, order: i };
+          });
+          return { ...p, rows: reordered };
+        }),
+      };
     }
 
     case 'ADD_ROW': {
