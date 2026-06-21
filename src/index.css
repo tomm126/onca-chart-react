@@ -70,3 +70,16 @@ input, select {
 @media (max-width: 768px) {
   html, body { height: auto !important; overflow: auto !important; }
 }
+
+/* Header highlight on grid cell hover (#86) */
+[data-day-hdr].col-hover-hdr {
+  background: #d8d5cb !important;
+  color: var(--text) !important;
+  font-weight: 500;
+}
+[data-day-hdr][data-today-hdr].col-hover-hdr {
+  background: #e8d080 !important;
+}
+[data-lp-row].row-hover-lp [data-member-tag] {
+  box-shadow: inset 0 0 0 1px currentColor;
+}

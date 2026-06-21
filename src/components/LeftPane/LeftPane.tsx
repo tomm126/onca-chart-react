@@ -21,11 +21,9 @@ function InlineCellEdit({
   onCancel: () => void;
 }) {
   const [val, setVal] = useState(value);
-  const ref = useRef<HTMLInputElement>(null);
 
   return (
     <input
-      ref={ref}
       className={styles.cellInlineInput}
       value={val}
       autoFocus
@@ -57,6 +55,11 @@ function ProjectGroup({
   const { state, dispatch, saveHistory, setPanel, setContextMenu } = useAppContext();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [dragPosition, setDragPosition] = useState<'top' | 'bottom' | null>(null);
+
+  // Row D&D state (#88)
+  const rowDragRef = useRef<{ rowId: string } | null>(null);
+  const [draggingRowId, setDraggingRowId] = useState<string | null>(null);
+  const [rowDragOverMap, setRowDragOverMap] = useState<Record<string, 'top' | 'bottom'>>({});
 
   const getMem = useCallback((id: string) => {
     return state.members.find(m => m.id === id) ?? { id: '', name: '?', color: '#aaa' };
@@ -130,6 +133,7 @@ function ProjectGroup({
   }, [proj.id, dispatch, saveHistory]);
 
   const statusClass = proj.status !== 'active' ? styles[`status${proj.status.charAt(0).toUpperCase() + proj.status.slice(1)}`] : '';
+  const statusLabelText = proj.status === 'submitted' ? 'coding' : proj.status === 'testup' ? 'test up' : '';
 
   const sortedRows = [...proj.rows].sort((a, b) => a.order - b.order);
 
@@ -144,6 +148,8 @@ function ProjectGroup({
   return (
     <div
       className={groupClass}
+      data-proj-id={proj.id}
+      data-lp-group="1"
       onDragOver={e => {
         const pos = onDragOver(e, proj.id);
         setDragPosition(pos);
@@ -163,82 +169,144 @@ function ProjectGroup({
         >
           ⠿
         </div>
-        <div className={styles.groupRows}>
-          {sortedRows.map((row, ri) => {
-            const mem = getMem(row.memberId);
-            const isSecond = ri > 0;
-            const statusLabelText = proj.status === 'submitted' ? 'coding' : proj.status === 'testup' ? 'test up' : '';
-
-            return (
-              <div key={row.id} className={styles.row}>
-                {/* 名前 */}
-                <div
-                  className={`${styles.cell} ${styles.cellName} ${isSecond ? styles.cellNameSecond : ''} ${editingField === `name-${proj.id}` ? styles.editing : ''}`}
-                  onClick={!isSecond ? handleNameClick : undefined}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`name-${proj.id}`); } : undefined}
-                  title={proj.name}
-                >
-                  {editingField === `name-${proj.id}` && !isSecond ? (
-                    <InlineCellEdit
-                      value={proj.name}
-                      onCommit={v => v && commitEdit('name', v)}
-                      onCancel={() => setEditingField(null)}
-                    />
-                  ) : (
-                    <div className={styles.nameWrap}>
-                      <span className={styles.nameText}>{isSecond ? '' : proj.name}</span>
-                      {!isSecond && statusLabelText && (
-                        <span className={styles.statusLabel}>{statusLabelText}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* ページ数 */}
-                <div
-                  className={`${styles.cell} ${styles.cellPages} ${isSecond ? styles.cellPagesSecond : ''} ${editingField === `pages-${proj.id}` && !isSecond ? styles.editing : ''}`}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`pages-${proj.id}`); } : undefined}
-                >
-                  {editingField === `pages-${proj.id}` && !isSecond ? (
-                    <InlineCellEdit value={proj.pages} onCommit={v => commitEdit('pages', v)} onCancel={() => setEditingField(null)} />
-                  ) : isSecond ? '' : proj.pages}
-                </div>
-
-                {/* 開始 */}
-                <div
-                  className={`${styles.cell} ${styles.cellStart} ${isSecond ? styles.cellStartSecond : ''} ${!isSecond && isStartOverdue(proj.start) ? styles.cellStartOverdue : ''} ${editingField === `start-${proj.id}` && !isSecond ? styles.editing : ''}`}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`start-${proj.id}`); } : undefined}
-                >
-                  {editingField === `start-${proj.id}` && !isSecond ? (
-                    <InlineCellEdit value={proj.start} onCommit={v => commitEdit('start', v)} onCancel={() => setEditingField(null)} />
-                  ) : isSecond ? '' : proj.start}
-                </div>
-
-                {/* 期限 */}
-                <div
-                  className={`${styles.cell} ${styles.cellDead} ${isSecond ? styles.cellDeadSecond : ''} ${editingField === `deadline-${proj.id}` && !isSecond ? styles.editing : ''}`}
-                  onDoubleClick={!isSecond ? e => { e.stopPropagation(); setEditingField(`deadline-${proj.id}`); } : undefined}
-                >
-                  {editingField === `deadline-${proj.id}` && !isSecond ? (
-                    <InlineCellEdit value={proj.deadline} onCommit={v => commitEdit('deadline', v)} onCancel={() => setEditingField(null)} />
-                  ) : isSecond ? '' : proj.deadline}
-                </div>
-
-                {/* 担当 */}
-                <div className={`${styles.cell} ${styles.cellMember}`}>
-                  <span
-                    className={styles.memberTag}
-                    style={{ color: mem.color, background: `${mem.color}18` }}
-                    onClick={e => handleMemberTagClick(e, row)}
-                  >
-                    {mem.name}
-                  </span>
-                </div>
+        <div className={styles.groupRows} data-lp-group-rows="1">
+          <div className={styles.rowGroup}>
+            {/* Info columns: span all member rows height */}
+            <div className={styles.rowInfo}>
+              {/* 案件名 */}
+              <div
+                className={`${styles.cell} ${styles.cellName} ${editingField === `name-${proj.id}` ? styles.editing : ''}`}
+                onClick={handleNameClick}
+                onDoubleClick={e => { e.stopPropagation(); setEditingField(`name-${proj.id}`); }}
+                title={proj.name}
+              >
+                {editingField === `name-${proj.id}` ? (
+                  <InlineCellEdit
+                    value={proj.name}
+                    onCommit={v => v && commitEdit('name', v)}
+                    onCancel={() => setEditingField(null)}
+                  />
+                ) : (
+                  <div className={styles.nameWrap}>
+                    <span className={styles.nameText}>{proj.name}</span>
+                    {statusLabelText && (
+                      <span className={styles.statusLabel}>{statusLabelText}</span>
+                    )}
+                  </div>
+                )}
               </div>
-            );
-          })}
 
-          <div className={styles.addRow} onClick={() => setPanel({ type: 'addRow', projectId: proj.id })}>
+              {/* P数 */}
+              <div
+                className={`${styles.cell} ${styles.cellPages} ${editingField === `pages-${proj.id}` ? styles.editing : ''}`}
+                onDoubleClick={e => { e.stopPropagation(); setEditingField(`pages-${proj.id}`); }}
+              >
+                {editingField === `pages-${proj.id}` ? (
+                  <InlineCellEdit value={proj.pages} onCommit={v => commitEdit('pages', v)} onCancel={() => setEditingField(null)} />
+                ) : proj.pages}
+              </div>
+
+              {/* 制作開始 */}
+              <div
+                className={`${styles.cell} ${styles.cellStart} ${isStartOverdue(proj.start) ? styles.cellStartOverdue : ''} ${editingField === `start-${proj.id}` ? styles.editing : ''}`}
+                onDoubleClick={e => { e.stopPropagation(); setEditingField(`start-${proj.id}`); }}
+              >
+                {editingField === `start-${proj.id}` ? (
+                  <InlineCellEdit value={proj.start} onCommit={v => commitEdit('start', v)} onCancel={() => setEditingField(null)} />
+                ) : proj.start}
+              </div>
+
+              {/* 期限 */}
+              <div
+                className={`${styles.cell} ${styles.cellDead} ${editingField === `deadline-${proj.id}` ? styles.editing : ''}`}
+                onDoubleClick={e => { e.stopPropagation(); setEditingField(`deadline-${proj.id}`); }}
+              >
+                {editingField === `deadline-${proj.id}` ? (
+                  <InlineCellEdit value={proj.deadline} onCommit={v => commitEdit('deadline', v)} onCancel={() => setEditingField(null)} />
+                ) : proj.deadline}
+              </div>
+            </div>
+
+            {/* Member rows: one per member, with row D&D */}
+            <div className={styles.memberRows} data-member-rows="1">
+              {sortedRows.map(row => {
+                const mem = getMem(row.memberId);
+                const rowCls = [
+                  styles.lpRow,
+                  draggingRowId === row.id ? styles.rowDragging : '',
+                  rowDragOverMap[row.id] === 'top' ? styles.rowDragOverTop : '',
+                  rowDragOverMap[row.id] === 'bottom' ? styles.rowDragOverBottom : '',
+                ].filter(Boolean).join(' ');
+                return (
+                  <div
+                    key={row.id}
+                    className={rowCls}
+                    data-row-id={row.id}
+                    onDragOver={e => {
+                      if (!rowDragRef.current || rowDragRef.current.rowId === row.id) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const pos: 'top' | 'bottom' = e.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom';
+                      setRowDragOverMap({ [row.id]: pos });
+                    }}
+                    onDragLeave={() => {
+                      setRowDragOverMap(prev => { const n = { ...prev }; delete n[row.id]; return n; });
+                    }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const d = rowDragRef.current;
+                      if (!d || d.rowId === row.id) return;
+                      const pos = rowDragOverMap[row.id];
+                      const before = pos === 'top';
+                      setRowDragOverMap({});
+                      rowDragRef.current = null;
+                      setDraggingRowId(null);
+                      saveHistory();
+                      const rows = [...proj.rows].sort((a, b) => a.order - b.order);
+                      const fi = rows.findIndex(r => r.id === d.rowId);
+                      const ti = rows.findIndex(r => r.id === row.id);
+                      if (fi < 0 || ti < 0) return;
+                      const moved = rows.splice(fi, 1)[0];
+                      rows.splice(before ? ti - (fi < ti ? 1 : 0) : ti + (fi > ti ? 1 : 0), 0, moved);
+                      dispatch({ type: 'REORDER_ROWS', projectId: proj.id, orderedIds: rows.map(r => r.id) });
+                    }}
+                  >
+                    <div className={`${styles.cell} ${styles.cellMember}`}>
+                      <span
+                        className={styles.memberTag}
+                        data-member-tag=""
+                        draggable
+                        style={{ color: mem.color, background: `${mem.color}18`, cursor: 'grab' }}
+                        onDragStart={e => {
+                          e.stopPropagation();
+                          e.dataTransfer.effectAllowed = 'move';
+                          e.dataTransfer.setData('text/plain', 'row');
+                          rowDragRef.current = { rowId: row.id };
+                          setTimeout(() => setDraggingRowId(row.id), 0);
+                        }}
+                        onDragEnd={() => {
+                          rowDragRef.current = null;
+                          setDraggingRowId(null);
+                          setRowDragOverMap({});
+                        }}
+                        onClick={e => handleMemberTagClick(e, row)}
+                      >
+                        {mem.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div
+            className={styles.addRow}
+            data-lp-add-row="1"
+            onClick={() => setPanel({ type: 'addRow', projectId: proj.id })}
+          >
             ＋ 担当追加
           </div>
         </div>

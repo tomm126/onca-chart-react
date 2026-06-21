@@ -66,19 +66,23 @@ const DateHeader = React.memo(function DateHeader({
           const nwd = isNWD(dstr, customNonWorkingDays, removedHolidays, d);
           const arc = dstr <= archiveBefore;
           const dw = d.getDay();
+          const isTodayHdr = !nwd && !arc && dstr === today;
           let cls = styles.dayCell;
           if (nwd) cls += ' ' + styles.nwdHdr;
           else if (arc) cls += ' ' + styles.arcHdr;
-          else {
+          // 土日・祝日の文字色は非稼働日かどうかに関わらず適用（アーカイブ時は除く）
+          if (!arc) {
             if (dw === 6) cls += ' ' + styles.sat;
             else if (dw === 0) cls += ' ' + styles.sun;
             else if (isHol(d)) cls += ' ' + styles.hol;
-            if (dstr === today) cls += ' ' + styles.todayHdr;
           }
+          if (isTodayHdr) cls += ' ' + styles.todayHdr;
           return (
             <div
               key={dstr}
               className={cls}
+              data-day-hdr={dstr}
+              {...(isTodayHdr ? { 'data-today-hdr': '' } : {})}
               onContextMenu={e => { e.preventDefault(); onDayContextMenu(e, dstr, d); }}
             >
               <span>{d.getDate()}</span>
@@ -96,16 +100,21 @@ const PinLabel = React.memo(function PinLabel({
   rowId,
   dateStr,
   onResize,
-  onDelete,
+  onContextMenu,
   onEdit,
+  onPinDragStart,
+  onPinDragEnd,
 }: {
   pin: Pin;
   rowId: string;
   dateStr: string;
   onResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
-  onDelete: (rowId: string, dateStr: string, pinId: string) => void;
+  onContextMenu: (e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => void;
   onEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
+  onPinDragStart: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinDragEnd: () => void;
 }) {
+  const wrapRef = React.useRef<HTMLDivElement>(null);
   const [editing, setEditing] = React.useState(false);
   const [editValue, setEditValue] = React.useState('');
   const committedRef = React.useRef(false);
@@ -134,11 +143,33 @@ const PinLabel = React.memo(function PinLabel({
 
   return (
     <div
+      ref={wrapRef}
       className={styles.pinWrap}
       style={{ width: (pin.span || 1) * CELL_W }}
+      draggable
+      data-pin-wrap=""
       onMouseDown={e => e.stopPropagation()}
       onClick={e => e.stopPropagation()}
-      onContextMenu={e => { e.preventDefault(); e.stopPropagation(); onDelete(rowId, dateStr, pin.id); }}
+      onContextMenu={e => onContextMenu(e, rowId, dateStr, pin.id)}
+      onDragStart={e => {
+        e.stopPropagation();
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'pin');
+        onPinDragStart(rowId, dateStr, pin.id);
+        setTimeout(() => {
+          if (wrapRef.current) wrapRef.current.style.opacity = '.35';
+          document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+            (el as HTMLElement).style.pointerEvents = 'none';
+          });
+        }, 0);
+      }}
+      onDragEnd={() => {
+        if (wrapRef.current) wrapRef.current.style.opacity = '';
+        document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+          (el as HTMLElement).style.pointerEvents = '';
+        });
+        onPinDragEnd();
+      }}
     >
       <div className={styles.pinLabelInner} onDoubleClick={handleDblClick}>{pin.label}</div>
       {editing && (
@@ -186,6 +217,7 @@ const GanttCell = React.memo(function GanttCell({
   isArc,
   isWknd: weekend,
   isToday,
+  isFirstRow,
   pins,
   cellRef,
   onMouseDown,
@@ -195,8 +227,10 @@ const GanttCell = React.memo(function GanttCell({
   onDblClick,
   onContextMenu,
   onPinResize,
-  onPinDelete,
+  onPinContextMenu,
   onPinEdit,
+  onPinDragStart,
+  onPinDragEnd,
 }: {
   dstr: string;
   di: number;
@@ -207,6 +241,7 @@ const GanttCell = React.memo(function GanttCell({
   isArc: boolean;
   isWknd: boolean;
   isToday: boolean;
+  isFirstRow: boolean;
   pins: Pin[];
   cellRef: (el: HTMLDivElement | null) => void;
   onMouseDown: (di: number, dstr: string, rowId: string, paint: boolean) => void;
@@ -216,10 +251,13 @@ const GanttCell = React.memo(function GanttCell({
   onDblClick: (el: HTMLDivElement, rowId: string, dstr: string) => void;
   onContextMenu: (e: React.MouseEvent, rowId: string, dstr: string) => void;
   onPinResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
-  onPinDelete: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinContextMenu: (e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => void;
   onPinEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
+  onPinDragStart: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinDragEnd: () => void;
 }) {
   let cls = styles.gridCell;
+  if (isFirstRow) cls += ' ' + styles.gridCellFirst;
   if (isNwd) cls += ' ' + styles.nwdCell;
   else {
     if (weekend) cls += ' ' + styles.wkndCell;
@@ -248,8 +286,10 @@ const GanttCell = React.memo(function GanttCell({
           rowId={rowId}
           dateStr={dstr}
           onResize={onPinResize}
-          onDelete={onPinDelete}
+          onContextMenu={onPinContextMenu}
           onEdit={onPinEdit}
+          onPinDragStart={onPinDragStart}
+          onPinDragEnd={onPinDragEnd}
         />
       ))}
     </div>
@@ -268,13 +308,36 @@ export const GanttPane = React.memo(function GanttPane({
   const today = todayStr();
   const cellMapRef = useRef<CellMap>(new Map());
 
+  // ── Cross highlight (#86) ────────────────────────────────────────────────────
+  const hoveredDkRef = useRef<string | null>(null);
+  const hoveredRowIdRef = useRef<string | null>(null);
+
+  const clearCrossHighlight = useCallback(() => {
+    if (hoveredDkRef.current) {
+      document.querySelector(`[data-day-hdr="${hoveredDkRef.current}"]`)?.classList.remove('col-hover-hdr');
+      hoveredDkRef.current = null;
+    }
+    if (hoveredRowIdRef.current) {
+      document.querySelector(`[data-lp-row="${hoveredRowIdRef.current}"]`)?.classList.remove('row-hover-lp');
+      hoveredRowIdRef.current = null;
+    }
+  }, []);
+
+  const applyCrossHighlight = useCallback((dstr: string, rowId: string) => {
+    if (hoveredDkRef.current === dstr && hoveredRowIdRef.current === rowId) return;
+    clearCrossHighlight();
+    hoveredDkRef.current = dstr;
+    hoveredRowIdRef.current = rowId;
+    document.querySelector(`[data-day-hdr="${dstr}"]`)?.classList.add('col-hover-hdr');
+    document.querySelector(`[data-lp-row="${rowId}"]`)?.classList.add('row-hover-lp');
+  }, [clearCrossHighlight]);
+
   // ── Drag paint ──────────────────────────────────────────────────────────────
   const drag = useRef<{ on: boolean; rowId: string | null; painting: boolean; lastIdx: number }>({
     on: false, rowId: null, painting: false, lastIdx: -1,
   });
 
   const applyCell = useCallback((rowId: string, dstr: string, paint: boolean) => {
-    // Optimistic DOM update for smooth drag
     const cell = cellMapRef.current.get(buildCellKey(rowId, dstr));
     if (cell) {
       const proj = state.projects.find(p => p.rows.some(r => r.id === rowId));
@@ -302,6 +365,7 @@ export const GanttPane = React.memo(function GanttPane({
           const mem = state.members.find(m => m.id === row.memberId) ?? { color: '#aaa' };
           el.style.background = `rgba(${hexToRgb(mem.color)},.13)`;
         }
+        applyCrossHighlight(dstr, rowId);
       }
       return;
     }
@@ -322,7 +386,7 @@ export const GanttPane = React.memo(function GanttPane({
       }
       drag.current.lastIdx = di;
     });
-  }, [ganttDays, state.customNonWorkingDays, state.removedHolidays, state.projects, state.members, applyCell]);
+  }, [ganttDays, state.customNonWorkingDays, state.removedHolidays, state.projects, state.members, applyCell, applyCrossHighlight]);
 
   const handleCellMouseLeave = useCallback((el: HTMLDivElement, dstr: string) => {
     if (!drag.current.on) {
@@ -384,8 +448,9 @@ export const GanttPane = React.memo(function GanttPane({
   });
 
   const handlePinResizeStart = useCallback((rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => {
+    saveHistory();
     pinResize.current = { on: true, rowId, dateStr, pinId, startX, origSpan };
-  }, []);
+  }, [saveHistory]);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -394,21 +459,100 @@ export const GanttPane = React.memo(function GanttPane({
       dispatch({ type: 'RESIZE_PIN', rowId: pinResize.current.rowId, dateStr: pinResize.current.dateStr, pinId: pinResize.current.pinId, span: newSpan });
     };
     const onMouseUp = () => {
-      if (pinResize.current.on) { saveHistory(); pinResize.current.on = false; }
+      if (pinResize.current.on) { pinResize.current.on = false; }
     };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
     return () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
-  }, [dispatch, saveHistory]);
+  }, [dispatch]);
 
-  const handlePinDelete = useCallback((rowId: string, dateStr: string, pinId: string) => {
-    saveHistory();
-    dispatch({ type: 'DELETE_PIN', rowId, dateStr, pinId });
-  }, [dispatch, saveHistory]);
+  const handlePinContextMenu = useCallback((e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: '✕ ピンを削除',
+          danger: true,
+          action: () => {
+            saveHistory();
+            dispatch({ type: 'DELETE_PIN', rowId, dateStr, pinId });
+          },
+        },
+      ],
+    });
+  }, [dispatch, saveHistory, setContextMenu]);
 
   const handlePinEdit = useCallback((rowId: string, dateStr: string, pinId: string, label: string) => {
     saveHistory();
     dispatch({ type: 'UPDATE_PIN_LABEL', rowId, dateStr, pinId, label });
+  }, [dispatch, saveHistory]);
+
+  // ── Pin D&D (#89) ─────────────────────────────────────────────────────────
+  const pinDragDataRef = useRef<{ pinId: string; rowId: string; fromDk: string } | null>(null);
+  const pinHoveredCellRef = useRef<HTMLDivElement | null>(null);
+  const pinDragOverRafRef = useRef<number | null>(null);
+
+  const handlePinDragStart = useCallback((rowId: string, dateStr: string, pinId: string) => {
+    pinDragDataRef.current = { pinId, rowId, fromDk: dateStr };
+  }, []);
+
+  const handlePinDragEnd = useCallback(() => {
+    if (pinHoveredCellRef.current) {
+      pinHoveredCellRef.current.style.outline = '';
+      pinHoveredCellRef.current = null;
+    }
+    pinDragDataRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      if (!pinDragDataRef.current) return;
+      e.preventDefault();
+      if (pinDragOverRafRef.current) return;
+      pinDragOverRafRef.current = requestAnimationFrame(() => {
+        pinDragOverRafRef.current = null;
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const cell = el?.closest('[data-gantt-cell]') as HTMLDivElement | null;
+        const valid = cell
+          && cell.dataset.rowId === pinDragDataRef.current?.rowId
+          && !cell.dataset.nwd;
+        const target = valid ? cell : null;
+        if (target === pinHoveredCellRef.current) return;
+        if (pinHoveredCellRef.current) {
+          pinHoveredCellRef.current.style.outline = '';
+        }
+        pinHoveredCellRef.current = target;
+        if (target) target.style.outline = '2px solid var(--today-line)';
+      });
+    };
+
+    const onDrop = (e: DragEvent) => {
+      if (!pinDragDataRef.current) return;
+      e.preventDefault();
+      if (pinHoveredCellRef.current) {
+        pinHoveredCellRef.current.style.outline = '';
+        pinHoveredCellRef.current = null;
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const cell = el?.closest('[data-gantt-cell]') as HTMLDivElement | null;
+      const toDk = cell?.dataset.dk;
+      const d = pinDragDataRef.current;
+      pinDragDataRef.current = null;
+      if (!cell || !toDk || cell.dataset.rowId !== d.rowId || cell.dataset.nwd || toDk === d.fromDk) return;
+      saveHistory();
+      dispatch({ type: 'MOVE_PIN', rowId: d.rowId, fromDk: d.fromDk, toDk, pinId: d.pinId });
+    };
+
+    document.addEventListener('dragover', onDragOver);
+    document.addEventListener('drop', onDrop);
+    return () => {
+      document.removeEventListener('dragover', onDragOver);
+      document.removeEventListener('drop', onDrop);
+    };
   }, [dispatch, saveHistory]);
 
   // ── Inline pin input ────────────────────────────────────────────────────────
@@ -543,64 +687,80 @@ export const GanttPane = React.memo(function GanttPane({
     setContextMenu({ visible: true, x: e.clientX, y: e.clientY, items });
   }, [state.projects, state.pins, state.view.archiveBefore, handleCellDblClick, setContextMenu, setPanel]);
 
-  // ── Render rows ─────────────────────────────────────────────────────────────
+  // ── Render rows (column-based structure) ────────────────────────────────────
   function renderProjectGroup(proj: Project, isPinned: boolean) {
     const sortedRows = [...proj.rows].sort((a, b) => a.order - b.order);
-    return (
-      <div key={proj.id} className={`${styles.gridGroup} ${isPinned ? styles.gridGroupPinned : ''}`}>
-        {sortedRows.map((row, ri) => {
-          const mem = state.members.find(m => m.id === row.memberId) ?? { id: '', name: '?', color: '#aaa' };
-          return (
-            <div key={row.id} className={`${styles.gridRow} ${ri === 0 ? styles.gridRowFirst : ''}`}>
-              {ganttDays.map((d, di) => {
-                const dstr = dk(d);
-                const nwd = isNWD(dstr, state.customNonWorkingDays, state.removedHolidays, d);
-                const arc = dstr <= state.view.archiveBefore;
-                const filled = !!row.cells[dstr];
-                const rowPins = state.pins[row.id]?.[dstr] ?? [];
 
-                return (
-                  <GanttCell
-                    key={dstr}
-                    dstr={dstr}
-                    di={di}
-                    rowId={row.id}
-                    filled={filled}
-                    color={mem.color}
-                    isNwd={nwd}
-                    isArc={arc}
-                    isWknd={isWknd(d)}
-                    isToday={dstr === today}
-                    pins={rowPins}
-                    cellRef={el => {
-                      const key = buildCellKey(row.id, dstr);
-                      if (el) {
-                        cellMapRef.current.set(key, el);
-                        // attach dataset for touch events
-                        el.dataset['dk'] = dstr;
-                        el.dataset['rowId'] = row.id;
-                        el.dataset['di'] = String(di);
-                        el.dataset['ganttCell'] = '1';
-                      } else {
-                        cellMapRef.current.delete(key);
-                      }
-                    }}
-                    onMouseDown={handleCellMouseDown}
-                    onMouseEnter={handleCellMouseEnter}
-                    onMouseLeave={handleCellMouseLeave}
-                    onTouchStart={handleCellTouchStart}
-                    onDblClick={handleCellDblClick}
-                    onContextMenu={handleCellContextMenu}
-                    onPinResize={handlePinResizeStart}
-                    onPinDelete={handlePinDelete}
-                    onPinEdit={handlePinEdit}
-                  />
-                );
-              })}
-            </div>
-          );
-        })}
-        <div className={styles.gridSpacer} />
+    return (
+      <div
+        key={proj.id}
+        className={styles.gridGroupWrap}
+        data-proj-id={proj.id}
+        data-grid-wrap="1"
+      >
+        <div
+          className={`${styles.gridGroup} ${isPinned ? styles.gridGroupPinned : ''}`}
+          data-grid-group="1"
+        >
+          {ganttDays.map((d, di) => {
+            const dstr = dk(d);
+            const nwd = isNWD(dstr, state.customNonWorkingDays, state.removedHolidays, d);
+            const arc = dstr <= state.view.archiveBefore;
+
+            return (
+              <div key={dstr} className={styles.gridCol} data-grid-col="1">
+                {sortedRows.map((row, ri) => {
+                  const mem = state.members.find(m => m.id === row.memberId) ?? { id: '', name: '?', color: '#aaa' };
+                  const filled = !!row.cells[dstr];
+                  const rowPins = state.pins[row.id]?.[dstr] ?? [];
+
+                  return (
+                    <GanttCell
+                      key={row.id}
+                      dstr={dstr}
+                      di={di}
+                      rowId={row.id}
+                      filled={filled}
+                      color={mem.color}
+                      isNwd={nwd}
+                      isArc={arc}
+                      isWknd={isWknd(d)}
+                      isToday={dstr === today}
+                      isFirstRow={ri === 0}
+                      pins={rowPins}
+                      cellRef={el => {
+                        const key = buildCellKey(row.id, dstr);
+                        if (el) {
+                          cellMapRef.current.set(key, el);
+                          el.dataset['dk'] = dstr;
+                          el.dataset['rowId'] = row.id;
+                          el.dataset['di'] = String(di);
+                          el.dataset['ganttCell'] = '1';
+                          if (nwd) el.dataset['nwd'] = '1';
+                          else delete el.dataset['nwd'];
+                        } else {
+                          cellMapRef.current.delete(key);
+                        }
+                      }}
+                      onMouseDown={handleCellMouseDown}
+                      onMouseEnter={handleCellMouseEnter}
+                      onMouseLeave={handleCellMouseLeave}
+                      onTouchStart={handleCellTouchStart}
+                      onDblClick={handleCellDblClick}
+                      onContextMenu={handleCellContextMenu}
+                      onPinResize={handlePinResizeStart}
+                      onPinContextMenu={handlePinContextMenu}
+                      onPinEdit={handlePinEdit}
+                      onPinDragStart={handlePinDragStart}
+                      onPinDragEnd={handlePinDragEnd}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <div className={styles.gridSpacer} data-grid-spacer="1" />
       </div>
     );
   }
@@ -616,7 +776,7 @@ export const GanttPane = React.memo(function GanttPane({
           onDayContextMenu={handleDayContextMenu}
         />
 
-        <div className={styles.rowsArea}>
+        <div className={styles.rowsArea} onMouseLeave={clearCrossHighlight}>
           {norm.map(proj => renderProjectGroup(proj, false))}
           {pinnedProjects.length > 0 && (
             <>

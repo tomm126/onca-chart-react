@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useReducer, useRef, useCallback, useState } from 'react';
+import React, { createContext, useContext, useReducer, useRef, useCallback, useState, useEffect } from 'react';
 import type { AppState, PanelMode, ContextMenuState } from '../types';
 import type { Action } from './reducer';
 import { reducer, cloneState } from './reducer';
 import { dk, addD } from '../utils/date';
+import { initHolidays, getHolidays } from '../utils/holidayCache';
 
 const MAX_HISTORY = 50;
 
@@ -23,6 +24,9 @@ export function makeInitialState(): AppState {
       { id: 'm8', name: '小川', color: '#1a5fbf' },
       { id: 'm9', name: '武田', color: '#a08800' },
       { id: 'm10', name: '小金丸', color: '#707070' },
+      { id: 'm13', name: 'ディレクター', color: '#606060' },
+      { id: 'm14', name: 'デザイナー', color: '#606060' },
+      { id: 'm15', name: 'エンジニア', color: '#606060' },
     ],
     projects: [
       { id: 'p1', name: 'メディカル在宅（追加）', pages: '', start: '', deadline: 'なし', order: 0, status: 'active', pinned: false, rows: [{ id: 'r1', memberId: 'm4', order: 0, cells: {} }, { id: 'r2', memberId: 'm5', order: 1, cells: {} }] },
@@ -74,6 +78,7 @@ interface AppContextValue {
   canUndo: boolean;
   canRedo: boolean;
   saveHistory: () => void;
+  clearHistory: () => void;
   // UI state
   filterMembers: Set<string>;
   setFilterMembers: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -85,6 +90,8 @@ interface AppContextValue {
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
   toastMessage: string;
   showToast: (msg: string) => void;
+  /** 祝日データ（API取得後に更新、失敗時はハードコード値） */
+  holidays: Set<string>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -104,6 +111,11 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
   });
   const [toastMessage, setToastMessage] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [holidays, setHolidays] = useState<Set<string>>(getHolidays());
+
+  useEffect(() => {
+    initHolidays().then(h => setHolidays(h));
+  }, []);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -113,6 +125,13 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
     redoStack.current = [];
     if (undoStack.current.length > MAX_HISTORY) undoStack.current.shift();
     setCanUndo(true);
+    setCanRedo(false);
+  }, []);
+
+  const clearHistory = useCallback(() => {
+    undoStack.current = [];
+    redoStack.current = [];
+    setCanUndo(false);
     setCanRedo(false);
   }, []);
 
@@ -142,12 +161,13 @@ export function AppProvider({ children, initialState }: { children: React.ReactN
 
   return (
     <AppContext.Provider value={{
-      state, dispatch, undo, redo, canUndo, canRedo, saveHistory,
+      state, dispatch, undo, redo, canUndo, canRedo, saveHistory, clearHistory,
       filterMembers, setFilterMembers,
       showDone, setShowDone,
       panel, setPanel,
       contextMenu, setContextMenu,
       toastMessage, showToast,
+      holidays,
     }}>
       {children}
     </AppContext.Provider>

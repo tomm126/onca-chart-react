@@ -37,6 +37,49 @@ function AppInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Height sync: align grid-group-wrap heights with lp-group heights after each render.
+  //
+  // Root cause of misalignment: groupRows has border-bottom: 1px, so
+  //   groupRows.offsetHeight = N×row-h + addRow-h + 1(border)
+  //   rowsH = groupRowsH - addRowH = N×row-h + 1  ← 1px excess
+  //   → gridCol height = N×row-h + 1 → each cell = (N×row-h+1)/N = non-integer px
+  //   → cumulative misalignment grows with member count
+  //
+  // Fix: measure memberRows.offsetHeight directly (no borders → exactly N×row-h).
+  // Spacer: gg + sp + ggWrap.borderBottom = lpH  →  sp = lpH − ggWrapBorder − rowsH
+  React.useEffect(() => {
+    const timerId = setTimeout(() => {
+      document.querySelectorAll<HTMLElement>('[data-lp-group]').forEach(lg => {
+        const projId = lg.dataset.projId;
+        if (!projId) return;
+        const ggWrap = document.querySelector<HTMLElement>(`[data-grid-wrap][data-proj-id="${projId}"]`);
+        if (!ggWrap) return;
+        const gg = ggWrap.querySelector<HTMLElement>('[data-grid-group]');
+        const sp = ggWrap.querySelector<HTMLElement>('[data-grid-spacer]');
+        if (!gg || !sp) return;
+
+        // Measure lp-group total height (content + groupRows border-bottom)
+        const lpH = lg.offsetHeight;
+
+        // Use memberRows.offsetHeight: exactly N×row-h, no border artifacts
+        const memberRowsEl = lg.querySelector<HTMLElement>('[data-member-rows]');
+        const rowsH = memberRowsEl?.offsetHeight ?? 0;
+
+        // Apply to grid-group and each grid-col
+        gg.style.height = rowsH + 'px';
+        gg.querySelectorAll<HTMLElement>('[data-grid-col]').forEach(col => {
+          col.style.height = rowsH + 'px';
+        });
+
+        // Spacer fills remaining height: gg + sp + ggWrap border-bottom = lpH
+        const ggWrapBorderH = ggWrap.offsetHeight - ggWrap.clientHeight; // = border-bottom (1px)
+        const newSpH = lpH - ggWrapBorderH - rowsH;
+        sp.style.height = Math.max(0, newSpH) + 'px';
+      });
+    }, 0);
+    return () => clearTimeout(timerId);
+  }); // no deps — run after every render
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <Toolbar scrollPaneRef={scrollPaneRef} ganttDays={ganttDays} />
