@@ -102,6 +102,8 @@ const PinLabel = React.memo(function PinLabel({
   onResize,
   onContextMenu,
   onEdit,
+  onPinDragStart,
+  onPinDragEnd,
 }: {
   pin: Pin;
   rowId: string;
@@ -109,7 +111,10 @@ const PinLabel = React.memo(function PinLabel({
   onResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
   onContextMenu: (e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => void;
   onEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
+  onPinDragStart: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinDragEnd: () => void;
 }) {
+  const wrapRef = React.useRef<HTMLDivElement>(null);
   const [editing, setEditing] = React.useState(false);
   const [editValue, setEditValue] = React.useState('');
   const committedRef = React.useRef(false);
@@ -138,11 +143,33 @@ const PinLabel = React.memo(function PinLabel({
 
   return (
     <div
+      ref={wrapRef}
       className={styles.pinWrap}
       style={{ width: (pin.span || 1) * CELL_W }}
+      draggable
+      data-pin-wrap=""
       onMouseDown={e => e.stopPropagation()}
       onClick={e => e.stopPropagation()}
       onContextMenu={e => onContextMenu(e, rowId, dateStr, pin.id)}
+      onDragStart={e => {
+        e.stopPropagation();
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'pin');
+        onPinDragStart(rowId, dateStr, pin.id);
+        setTimeout(() => {
+          if (wrapRef.current) wrapRef.current.style.opacity = '.35';
+          document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+            (el as HTMLElement).style.pointerEvents = 'none';
+          });
+        }, 0);
+      }}
+      onDragEnd={() => {
+        if (wrapRef.current) wrapRef.current.style.opacity = '';
+        document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+          (el as HTMLElement).style.pointerEvents = '';
+        });
+        onPinDragEnd();
+      }}
     >
       <div className={styles.pinLabelInner} onDoubleClick={handleDblClick}>{pin.label}</div>
       {editing && (
@@ -222,6 +249,8 @@ const GanttCell = React.memo(function GanttCell({
   onPinResize: (rowId: string, dateStr: string, pinId: string, startX: number, origSpan: number) => void;
   onPinContextMenu: (e: React.MouseEvent, rowId: string, dateStr: string, pinId: string) => void;
   onPinEdit: (rowId: string, dateStr: string, pinId: string, label: string) => void;
+  onPinDragStart: (rowId: string, dateStr: string, pinId: string) => void;
+  onPinDragEnd: () => void;
 }) {
   let cls = styles.gridCell;
   if (isNwd) cls += ' ' + styles.nwdCell;
@@ -254,6 +283,8 @@ const GanttCell = React.memo(function GanttCell({
           onResize={onPinResize}
           onContextMenu={onPinContextMenu}
           onEdit={onPinEdit}
+          onPinDragStart={onPinDragStart}
+          onPinDragEnd={onPinDragEnd}
         />
       ))}
     </div>
@@ -456,6 +487,70 @@ export const GanttPane = React.memo(function GanttPane({
     dispatch({ type: 'UPDATE_PIN_LABEL', rowId, dateStr, pinId, label });
   }, [dispatch, saveHistory]);
 
+  // ── Pin D&D (#89) ─────────────────────────────────────────────────────────
+  const pinDragDataRef = useRef<{ pinId: string; rowId: string; fromDk: string } | null>(null);
+  const pinHoveredCellRef = useRef<HTMLDivElement | null>(null);
+  const pinDragOverRafRef = useRef<number | null>(null);
+
+  const handlePinDragStart = useCallback((rowId: string, dateStr: string, pinId: string) => {
+    pinDragDataRef.current = { pinId, rowId, fromDk: dateStr };
+  }, []);
+
+  const handlePinDragEnd = useCallback(() => {
+    if (pinHoveredCellRef.current) {
+      pinHoveredCellRef.current.style.outline = '';
+      pinHoveredCellRef.current = null;
+    }
+    pinDragDataRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      if (!pinDragDataRef.current) return;
+      e.preventDefault();
+      if (pinDragOverRafRef.current) return;
+      pinDragOverRafRef.current = requestAnimationFrame(() => {
+        pinDragOverRafRef.current = null;
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const cell = el?.closest('[data-gantt-cell]') as HTMLDivElement | null;
+        const valid = cell
+          && cell.dataset.rowId === pinDragDataRef.current?.rowId
+          && !cell.dataset.nwd;
+        const target = valid ? cell : null;
+        if (target === pinHoveredCellRef.current) return;
+        if (pinHoveredCellRef.current) {
+          pinHoveredCellRef.current.style.outline = '';
+        }
+        pinHoveredCellRef.current = target;
+        if (target) target.style.outline = '2px solid var(--today-line)';
+      });
+    };
+
+    const onDrop = (e: DragEvent) => {
+      if (!pinDragDataRef.current) return;
+      e.preventDefault();
+      if (pinHoveredCellRef.current) {
+        pinHoveredCellRef.current.style.outline = '';
+        pinHoveredCellRef.current = null;
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const cell = el?.closest('[data-gantt-cell]') as HTMLDivElement | null;
+      const toDk = cell?.dataset.dk;
+      const d = pinDragDataRef.current;
+      pinDragDataRef.current = null;
+      if (!cell || !toDk || cell.dataset.rowId !== d.rowId || cell.dataset.nwd || toDk === d.fromDk) return;
+      saveHistory();
+      dispatch({ type: 'MOVE_PIN', rowId: d.rowId, fromDk: d.fromDk, toDk, pinId: d.pinId });
+    };
+
+    document.addEventListener('dragover', onDragOver);
+    document.addEventListener('drop', onDrop);
+    return () => {
+      document.removeEventListener('dragover', onDragOver);
+      document.removeEventListener('drop', onDrop);
+    };
+  }, [dispatch, saveHistory]);
+
   // ── Inline pin input ────────────────────────────────────────────────────────
   const pinInputRef = useRef<HTMLInputElement | null>(null);
   const pinInputWrapRef = useRef<HTMLDivElement | null>(null);
@@ -621,11 +716,12 @@ export const GanttPane = React.memo(function GanttPane({
                       const key = buildCellKey(row.id, dstr);
                       if (el) {
                         cellMapRef.current.set(key, el);
-                        // attach dataset for touch events
                         el.dataset['dk'] = dstr;
                         el.dataset['rowId'] = row.id;
                         el.dataset['di'] = String(di);
                         el.dataset['ganttCell'] = '1';
+                        if (nwd) el.dataset['nwd'] = '1';
+                        else delete el.dataset['nwd'];
                       } else {
                         cellMapRef.current.delete(key);
                       }
@@ -639,6 +735,8 @@ export const GanttPane = React.memo(function GanttPane({
                     onPinResize={handlePinResizeStart}
                     onPinContextMenu={handlePinContextMenu}
                     onPinEdit={handlePinEdit}
+                    onPinDragStart={handlePinDragStart}
+                    onPinDragEnd={handlePinDragEnd}
                   />
                 );
               })}

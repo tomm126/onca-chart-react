@@ -21,6 +21,7 @@ export type Action =
   | { type: 'RESIZE_PIN'; rowId: string; dateStr: string; pinId: string; span: number }
   | { type: 'DELETE_PIN'; rowId: string; dateStr: string; pinId: string }
   | { type: 'UPDATE_PIN_LABEL'; rowId: string; dateStr: string; pinId: string; label: string }
+  | { type: 'MOVE_PIN'; rowId: string; fromDk: string; toDk: string; pinId: string }
   | { type: 'ADD_NWD'; dateStr: string }
   | { type: 'REMOVE_NWD'; dateStr: string; isDefaultNWD: boolean }
   | { type: 'SET_ARCHIVE_BEFORE'; dateStr: string }
@@ -231,6 +232,19 @@ export function reducer(state: AppState, action: Action): AppState {
         const pin = list.find(p => p.id === action.pinId);
         if (pin) pin.label = action.label;
       }
+      return { ...state, pins };
+    }
+
+    case 'MOVE_PIN': {
+      const pins = JSON.parse(JSON.stringify(state.pins)) as AppState['pins'];
+      const fromPins = pins[action.rowId]?.[action.fromDk];
+      if (!fromPins) return state;
+      const pinObj = fromPins.find(p => p.id === action.pinId);
+      if (!pinObj) return state;
+      pins[action.rowId][action.fromDk] = fromPins.filter(p => p.id !== action.pinId);
+      if (!pins[action.rowId][action.fromDk].length) delete pins[action.rowId][action.fromDk];
+      if (!pins[action.rowId][action.toDk]) pins[action.rowId][action.toDk] = [];
+      pins[action.rowId][action.toDk].push(pinObj);
       return { ...state, pins };
     }
 
