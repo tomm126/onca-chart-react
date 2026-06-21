@@ -23,20 +23,20 @@
   --cell-w: 26px;
   --panel-w: 300px;
 
-  --bg: #f5f4f1;
+  --bg: #ffffff;
   --surface: #fff;
-  --surface2: #f9f8f6;
-  --surface3: #f0efe9;
-  --border: #e2e0d8;
-  --border2: #d4d2c8;
+  --surface2: #f5f5f5;
+  --surface3: #ebebeb;
+  --border: #d0cec8;
+  --border2: #b8b6b0;
   --text: #1a1916;
   --text2: #6b6960;
   --text3: #a8a69e;
   --today-bg: #fff9e6;
   --today-line: #d4a017;
-  --weekend-bg: #e8e7e2;
-  --nwd-bg: #dddbd4;
-  --pinned-bg: #f7f6f3;
+  --weekend-bg: #c8c7c0;
+  --nwd-bg: #b8b6ae;
+  --pinned-bg: #f5f5f5;
   --pin-color: #1a1916;
   --archive-bar-c: #6b6960;
   --status-submitted: #e8f5e9;
@@ -69,4 +69,17 @@ input, select {
 
 @media (max-width: 768px) {
   html, body { height: auto !important; overflow: auto !important; }
+}
+
+/* Header highlight on grid cell hover (#86) */
+[data-day-hdr].col-hover-hdr {
+  background: #d8d5cb !important;
+  color: var(--text) !important;
+  font-weight: 500;
+}
+[data-day-hdr][data-today-hdr].col-hover-hdr {
+  background: #e8d080 !important;
+}
+[data-lp-row].row-hover-lp [data-member-tag] {
+  box-shadow: inset 0 0 0 1px currentColor;
 }

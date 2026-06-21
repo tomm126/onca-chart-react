@@ -79,9 +79,9 @@
 
 .dayCell:hover { background: var(--surface2); }
 
-.sat { color: #5080c0; }
-.sun, .hol { color: #c05050; }
-.nwdHdr { background: var(--nwd-bg) !important; color: var(--text3); }
+.sat { color: #3b7dd8; }
+.sun, .hol { color: #c0392b; }
+.nwdHdr { background: var(--nwd-bg) !important; }
 .arcHdr { background: #eceae3; color: #b0aea6; }
 .todayHdr { background: var(--today-bg); color: var(--today-line); font-weight: 500; }
 
@@ -92,25 +92,47 @@
   min-height: 100%;
 }
 
-.gridGroup { border-top: 1px solid var(--border); }
-.gridGroupPinned { background: var(--pinned-bg); }
-.gridSep { height: 24px; background: var(--surface3); border-top: 1px solid var(--border2); border-bottom: 1px solid var(--border2); }
-.gridSpacer { height: var(--add-row-h); width: 100%; border-top: 1px dashed transparent; }
+/* Column-based grid structure */
+.gridGroupWrap {
+  display: flex;
+  flex-direction: column;
+}
 
-.gridRow { height: var(--row-h); display: flex; }
-.gridRowFirst .gridCell { border-top: 1px solid #ccc9c0; }
+.gridGroup {
+  display: flex;
+  flex-direction: row;
+  border-top: 1px solid var(--border);
+}
+
+.gridGroupPinned { background: var(--pinned-bg); }
+
+.gridCol {
+  display: flex;
+  flex-direction: column;
+  width: var(--cell-w);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.gridSep { height: 24px; background: var(--surface3); border-top: 1px solid var(--border2); border-bottom: 1px solid var(--border2); }
+.gridSpacer { height: var(--add-row-h); border-top: 1px dashed transparent; }
 
 /* Cells */
 .gridCell {
   width: var(--cell-w);
+  flex: 1;
   min-height: var(--row-h);
-  flex-shrink: 0;
   border-right: 1px solid #ccc9c0;
   border-bottom: 1px solid #ccc9c0;
   position: relative;
   cursor: crosshair;
   overflow: visible;
   transition: background .06s;
+}
+
+/* First cell in each column gets top border */
+.gridCellFirst {
+  border-top: 1px solid #ccc9c0;
 }
 
 .nwdCell { background: var(--nwd-bg) !important; cursor: not-allowed; }
