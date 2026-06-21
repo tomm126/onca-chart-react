@@ -175,9 +175,24 @@
 
 .cellPagesSecond { color: transparent; }
 
-.cellStart,
-.cellDead {
+.cellStart {
   width: var(--col-start);
+  border-right: 1px solid var(--border);
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text3);
+  white-space: pre-line;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  padding: 3px 5px;
+  align-items: flex-start;
+}
+
+.cellDead {
+  width: var(--col-dead);
   border-right: 1px solid var(--border);
   font-size: 10px;
   font-family: 'DM Mono', monospace;
@@ -186,8 +201,6 @@
 }
 
 .cellStartOverdue { color: #c0392b; font-weight: 600; }
-
-.cellDead { width: var(--col-dead); }
 
 .cellStartSecond,
 .cellDeadSecond { color: transparent; }

@@ -4,7 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useVisibleProjects } from '../../hooks/useVisibleProjects';
 import type { Project, Row, Status } from '../../types';
 import { STATUS_LABELS } from '../../constants/palette';
-import { isStartOverdue } from '../../utils/date';
+import { isStartOverdue, formatStartCell } from '../../utils/date';
 import styles from './LeftPane.module.css';
 
 interface LeftPaneProps {
@@ -211,7 +211,7 @@ function ProjectGroup({
                 >
                   {editingField === `start-${proj.id}` && !isSecond ? (
                     <InlineCellEdit value={proj.start} onCommit={v => commitEdit('start', v)} onCancel={() => setEditingField(null)} />
-                  ) : isSecond ? '' : proj.start}
+                  ) : isSecond ? '' : formatStartCell(proj.start)}
                 </div>
 
                 {/* 期限 */}
