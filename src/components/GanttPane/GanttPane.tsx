@@ -227,7 +227,7 @@ const GanttCell = React.memo(function GanttCell({
     if (isArc) cls += ' ' + styles.arcCell;
   }
 
-  const bg = filled ? `${color}cc` : undefined;
+  const bg = filled ? `${color}aa` : undefined;
 
   return (
     <div
@@ -281,7 +281,7 @@ export const GanttPane = React.memo(function GanttPane({
       const row = proj?.rows.find(r => r.id === rowId);
       if (row) {
         const mem = state.members.find(m => m.id === row.memberId) ?? { color: '#aaa' };
-        cell.style.background = paint ? `${mem.color}cc` : '';
+        cell.style.background = paint ? `${mem.color}aa` : '';
       }
     }
     dispatch({ type: 'SET_CELLS', rowId, dates: [dstr], value: paint });
@@ -300,7 +300,7 @@ export const GanttPane = React.memo(function GanttPane({
         const row = proj?.rows.find(r => r.id === rowId);
         if (row && !row.cells[dstr]) {
           const mem = state.members.find(m => m.id === row.memberId) ?? { color: '#aaa' };
-          el.style.background = `rgba(${hexToRgb(mem.color)},.10)`;
+          el.style.background = `rgba(${hexToRgb(mem.color)},.13)`;
         }
       }
       return;
