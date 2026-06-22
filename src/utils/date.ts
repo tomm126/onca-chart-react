@@ -58,12 +58,14 @@ export function getElapsedDays(startStr: string): number | null {
 
 export function formatStartCell(startStr: string): string {
   if (!startStr) return '';
+  const d = parseStartDate(startStr);
+  const display = d ? `${d.getFullYear()}/${d.getMonth() + 1}` : startStr;
   const days = getElapsedDays(startStr);
-  if (days === null || days < 0) return startStr;
+  if (days === null || days < 0) return display;
   const months = Math.floor(days / 30);
   const remDays = days % 30;
   const elapsed = months > 0 ? `${months}m ${remDays}d` : `${days}d`;
-  return `${startStr}\n(${elapsed})`;
+  return `${display}\n(${elapsed})`;
 }
 
 export function isStartOverdue(startStr: string): boolean {
