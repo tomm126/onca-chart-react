@@ -101,6 +101,7 @@
 .gridGroup {
   display: flex;
   flex-direction: row;
+  border-top: 1px solid var(--border);
 }
 
 .gridGroupPinned { background: var(--pinned-bg); }
@@ -114,7 +115,7 @@
 }
 
 .gridSep { height: 24px; background: var(--surface3); border-bottom: 1px solid var(--border2); }
-.gridSpacer { height: var(--add-row-h); border-top: 1px dashed transparent; border-bottom: 1px solid var(--border); }
+.gridSpacer { height: var(--add-row-h); border-top: 1px dashed transparent; }
 
 /* Cells */
 .gridCell {
@@ -131,7 +132,6 @@
 
 /* First cell in each column gets top border */
 .gridCellFirst {
-  border-top: 1px solid #ccc9c0;
 }
 
 .nwdCell { background: var(--nwd-bg) !important; cursor: not-allowed; }
