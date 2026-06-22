@@ -101,7 +101,6 @@
 .gridGroup {
   display: flex;
   flex-direction: row;
-  border-top: 1px solid var(--border);
 }
 
 .gridGroupPinned { background: var(--pinned-bg); }
@@ -115,7 +114,7 @@
 }
 
 .gridSep { height: 24px; background: var(--surface3); border-bottom: 1px solid var(--border2); }
-.gridSpacer { height: var(--add-row-h); border-top: 1px dashed transparent; }
+.gridSpacer { height: var(--add-row-h); border-top: 1px dashed transparent; border-bottom: 1px solid var(--border); }
 
 /* Cells */
 .gridCell {
