@@ -20,7 +20,6 @@
   width: var(--handle-w);
   flex-shrink: 0;
   border-right: 1px solid var(--border);
-  height: var(--date-day-h);
 }
 
 .lhCol {
