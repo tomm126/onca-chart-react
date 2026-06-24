@@ -1,12 +1,12 @@
 /**
- * メンバーカラー移行スクリプト（Admin SDK版）
+ * 制作開始日マイグレーション（Admin SDK版）
  *
- * charts/main の members 配列の color フィールドを
- * プロトタイプ (gantt-v18_25.html) と同じカラーに更新します。
+ * charts/main の projects 配列の start フィールドが
+ * "YYYY-MM-DD HH:MM:SS" 形式の場合に "YYYY/M" 形式へ変換します。
  *
  * 実行方法:
  *   export FIREBASE_SERVICE_ACCOUNT='<サービスアカウントJSONの内容>'
- *   npm run migrate:member-colors
+ *   npm run migrate:start-dates
  *
  * サービスアカウントキーの取得:
  *   Firebase Console → プロジェクトの設定 → サービスアカウント
@@ -33,21 +33,14 @@ try {
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-const COLOR_MAP: Record<string, string> = {
-  'm1':  '#2e8b2e',  // 幸松
-  'm2':  '#7c3dbf',  // 伊藤
-  'm3':  '#c87000',  // 高橋
-  'm4':  '#0d9e87',  // 城山
-  'm5':  '#c4488a',  // 濱井
-  'm6':  '#3a6bbf',  // 菅原
-  'm7':  '#bf2020',  // 水野
-  'm8':  '#1a5fbf',  // 小川
-  'm9':  '#a08800',  // 武田
-  'm10': '#707070',  // 小金丸
-  'm13': '#606060',  // ディレクター
-  'm14': '#606060',  // デザイナー
-  'm15': '#606060',  // エンジニア
-};
+const DATETIME_RE = /^(\d{4})-(\d{2})-(\d{2}) \d{2}:\d{2}:\d{2}$/;
+
+function convertStart(start: unknown): unknown {
+  if (typeof start !== 'string' || !start) return start;
+  const m = start.match(DATETIME_RE);
+  if (!m) return start;
+  return `${parseInt(m[1], 10)}/${parseInt(m[2], 10)}`;
+}
 
 async function main(): Promise<void> {
   console.log('charts/main を取得中...');
@@ -60,18 +53,18 @@ async function main(): Promise<void> {
   }
 
   const data = snap.data()!;
-  const members: Record<string, unknown>[] = data.members ?? [];
+  const projects: Record<string, unknown>[] = data.projects ?? [];
 
   let changedCount = 0;
 
-  const updated = members.map(m => {
-    const newColor = COLOR_MAP[m.id as string];
-    if (newColor && newColor !== m.color) {
-      console.log(`変換: [${m.id}] "${m.name}"  "${m.color}" → "${newColor}"`);
+  const updated = projects.map(proj => {
+    const converted = convertStart(proj.start);
+    if (converted !== proj.start) {
+      console.log(`変換: [${proj.id}] "${proj.name}"  "${proj.start}" → "${converted}"`);
       changedCount++;
-      return { ...m, color: newColor };
+      return { ...proj, start: converted };
     }
-    return m;
+    return proj;
   });
 
   if (changedCount === 0) {
@@ -79,8 +72,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  await ref.update({ members: updated });
-  console.log(`\n✅ ${changedCount} 件の color フィールドを更新しました。`);
+  await ref.update({ projects: updated });
+  console.log(`\n✅ ${changedCount} 件の start フィールドを変換しました。`);
 }
 
 main().catch(err => {
