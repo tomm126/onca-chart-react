@@ -1,55 +1,89 @@
 /**
- * メンバーカラー移行スクリプト
+ * メンバーカラー移行スクリプト（Admin SDK版）
  *
- * Firestoreの charts/main ドキュメントの members フィールドを
+ * charts/main の members 配列の color フィールドを
  * プロトタイプ (gantt-v18_25.html) と同じカラーに更新します。
  *
  * 実行方法:
- *   1. ブラウザでアプリを開く（Firebase が初期化された状態）
- *   2. 開発者ツール > コンソールに以下のコードを貼り付けて実行
+ *   export FIREBASE_SERVICE_ACCOUNT='<サービスアカウントJSONの内容>'
+ *   npm run migrate:member-colors
+ *
+ * サービスアカウントキーの取得:
+ *   Firebase Console → プロジェクトの設定 → サービスアカウント
+ *   → 「新しい秘密鍵の生成」→ JSONファイルをダウンロード
+ *   → cat serviceAccountKey.json | jq -c . で1行JSONに変換して環境変数にセット
  */
 
-// ブラウザコンソールに貼り付けて実行するコード:
-/*
-(async () => {
-  const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js');
-  const { getFirestore, doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js');
+import admin from 'firebase-admin';
 
-  // 既存のFirebaseアプリを使う
-  const apps = getApps();
-  if (!apps.length) { console.error('Firebase が初期化されていません。アプリを開いた状態で実行してください。'); return; }
-  const db = getFirestore(apps[0]);
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (!serviceAccountJson) {
+  console.error('エラー: FIREBASE_SERVICE_ACCOUNT 環境変数が設定されていません');
+  process.exit(1);
+}
 
-  // プロトタイプ (gantt-v18_25.html) のカラー定義
-  const COLOR_MAP = {
-    'm1':  '#2e8b2e',  // 幸松
-    'm2':  '#7c3dbf',  // 伊藤
-    'm3':  '#c87000',  // 高橋
-    'm4':  '#0d9e87',  // 城山
-    'm5':  '#c4488a',  // 濱井
-    'm6':  '#3a6bbf',  // 菅原
-    'm7':  '#bf2020',  // 水野
-    'm8':  '#1a5fbf',  // 小川
-    'm9':  '#a08800',  // 武田
-    'm10': '#707070',  // 小金丸
-    'm13': '#606060',  // ディレクター
-    'm14': '#606060',  // デザイナー
-    'm15': '#606060',  // エンジニア
-  };
+let serviceAccount: admin.ServiceAccount;
+try {
+  serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+} catch {
+  console.error('エラー: FIREBASE_SERVICE_ACCOUNT のJSONパースに失敗しました');
+  process.exit(1);
+}
 
-  const ref = doc(db, 'charts', 'main');
-  const snap = await getDoc(ref);
-  if (!snap.exists()) { console.error('charts/main ドキュメントが存在しません'); return; }
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const db = admin.firestore();
 
-  const data = snap.data();
-  const members = (data.members || []).map(m => ({
-    ...m,
-    color: COLOR_MAP[m.id] ?? m.color,
-  }));
+const COLOR_MAP: Record<string, string> = {
+  'm1':  '#2e8b2e',  // 幸松
+  'm2':  '#7c3dbf',  // 伊藤
+  'm3':  '#c87000',  // 高橋
+  'm4':  '#0d9e87',  // 城山
+  'm5':  '#c4488a',  // 濱井
+  'm6':  '#3a6bbf',  // 菅原
+  'm7':  '#bf2020',  // 水野
+  'm8':  '#1a5fbf',  // 小川
+  'm9':  '#a08800',  // 武田
+  'm10': '#707070',  // 小金丸
+  'm13': '#606060',  // ディレクター
+  'm14': '#606060',  // デザイナー
+  'm15': '#606060',  // エンジニア
+};
 
-  await updateDoc(ref, { members });
-  console.log('✅ メンバーカラーを更新しました:', members.map(m => `${m.name}: ${m.color}`).join(', '));
-})();
-*/
+async function main(): Promise<void> {
+  console.log('charts/main を取得中...');
+  const ref = db.collection('charts').doc('main');
+  const snap = await ref.get();
 
-export {};
+  if (!snap.exists) {
+    console.error('エラー: charts/main ドキュメントが存在しません');
+    process.exit(1);
+  }
+
+  const data = snap.data()!;
+  const members: Record<string, unknown>[] = data.members ?? [];
+
+  let changedCount = 0;
+
+  const updated = members.map(m => {
+    const newColor = COLOR_MAP[m.id as string];
+    if (newColor && newColor !== m.color) {
+      console.log(`変換: [${m.id}] "${m.name}"  "${m.color}" → "${newColor}"`);
+      changedCount++;
+      return { ...m, color: newColor };
+    }
+    return m;
+  });
+
+  if (changedCount === 0) {
+    console.log('変換対象のデータはありませんでした。');
+    return;
+  }
+
+  await ref.update({ members: updated });
+  console.log(`\n✅ ${changedCount} 件の color フィールドを更新しました。`);
+}
+
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

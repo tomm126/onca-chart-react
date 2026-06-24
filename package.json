@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "migrate:start-dates": "npx ts-node --esm scripts/migrate-start-dates-admin.ts"
+    "migrate:start-dates": "npx ts-node --esm scripts/migrate-start-dates-admin.ts",
+    "migrate:member-colors": "npx ts-node --esm scripts/migrate-member-colors.ts"
   },
   "dependencies": {
     "firebase": "^12.14.0",
