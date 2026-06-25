@@ -1,4 +1,4 @@
-import { HOLIDAYS } from '../constants/holidays';
+import { getHolidays } from './holidayCache';
 
 export function dk(d: Date): string {
   const y = d.getFullYear();
@@ -23,7 +23,7 @@ export function isWknd(d: Date): boolean {
 }
 
 export function isHol(d: Date): boolean {
-  return HOLIDAYS.has(dk(d));
+  return getHolidays().has(dk(d));
 }
 
 export function isNWD(
@@ -58,12 +58,14 @@ export function getElapsedDays(startStr: string): number | null {
 
 export function formatStartCell(startStr: string): string {
   if (!startStr) return '';
+  const d = parseStartDate(startStr);
+  const display = d ? `${d.getFullYear()}/${d.getMonth() + 1}` : startStr;
   const days = getElapsedDays(startStr);
-  if (days === null || days < 0) return startStr;
+  if (days === null || days < 0) return display;
   const months = Math.floor(days / 30);
   const remDays = days % 30;
   const elapsed = months > 0 ? `${months}m ${remDays}d` : `${days}d`;
-  return `${startStr}\n(${elapsed})`;
+  return `${display}\n(${elapsed})`;
 }
 
 export function isStartOverdue(startStr: string): boolean {

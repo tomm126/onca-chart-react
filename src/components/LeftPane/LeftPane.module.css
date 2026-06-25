@@ -20,7 +20,6 @@
   width: var(--handle-w);
   flex-shrink: 0;
   border-right: 1px solid var(--border);
-  height: var(--date-day-h);
 }
 
 .lhCol {
@@ -99,22 +98,59 @@
 
 .groupHandle:active { cursor: grabbing; }
 
-.groupRows { flex: 1; overflow: hidden; border-bottom: 1px solid var(--border); }
+.groupRows {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+}
 
-/* row */
-.row {
+/* Column structure: rowInfo (spanning) + memberRows (stacked) */
+.rowGroup {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.rowInfo {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  overflow: hidden;
+}
+
+.memberRows {
+  display: flex;
+  flex-direction: column;
+  width: var(--col-member);
+}
+
+/* Individual member row */
+.lpRow {
   height: var(--row-h);
   display: flex;
   align-items: center;
 }
 
+/* Cells */
 .cell {
-  height: 100%;
   display: flex;
-  align-items: center;
-  padding: 0 5px;
+  align-items: flex-start;
+  padding: 3px 5px;
   overflow: hidden;
-  position: relative;
+  box-sizing: border-box;
+}
+
+/* Info cells span height — use align-self:stretch */
+.rowInfo .cell {
+  align-self: stretch;
+  height: auto;
+}
+
+/* Member cell fills row height */
+.lpRow .cell {
+  height: 100%;
+  align-items: center;
 }
 
 .cellName {
@@ -129,16 +165,10 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  position: relative;
 }
 
 .cellName:hover { background: var(--surface2); }
-
-.cellNameSecond {
-  color: transparent;
-  pointer-events: none;
-}
-
-.cellNameSecond:hover { background: none; }
 
 .nameWrap {
   display: flex;
@@ -173,8 +203,6 @@
   color: var(--text3);
 }
 
-.cellPagesSecond { color: transparent; }
-
 .cellStart {
   width: var(--col-start);
   border-right: 1px solid var(--border);
@@ -202,9 +230,6 @@
 
 .cellStartOverdue { color: #c0392b; font-weight: 600; }
 
-.cellStartSecond,
-.cellDeadSecond { color: transparent; }
-
 .cellMember { width: var(--col-member); }
 
 .memberTag {
@@ -217,7 +242,7 @@
   transition: opacity .12s;
 }
 
-.memberTag:hover { opacity: .75; }
+.memberTag:hover { opacity: .75; box-shadow: inset 0 0 0 1px currentColor; }
 
 .addRow {
   height: var(--add-row-h);
@@ -252,9 +277,14 @@
 .statusTestup .cellName { background: var(--status-testup); }
 .statusDone .cellName { background: var(--status-done); color: var(--text3); }
 
-/* drag over */
+/* drag over (project group) */
 .dragOverTop { border-top: 2px solid var(--today-line); }
 .dragOverBottom { border-bottom: 2px solid var(--today-line); }
+
+/* row D&D (#88) */
+.rowDragging { opacity: 0.35; }
+.rowDragOverTop { box-shadow: inset 0 2px 0 var(--today-line); }
+.rowDragOverBottom { box-shadow: inset 0 -2px 0 var(--today-line); }
 
 /* inline edit */
 .cellInlineInput {
