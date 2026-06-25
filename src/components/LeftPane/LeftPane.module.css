@@ -304,4 +304,5 @@
 
 .editing {
   overflow: visible;
+  position: relative;
 }
