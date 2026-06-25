@@ -248,7 +248,7 @@
   height: var(--add-row-h);
   display: flex;
   align-items: center;
-  padding: 0 5px 0 calc(var(--handle-w) + 5px);
+  padding: 0 5px 0 5px;
   font-size: 10px;
   color: var(--text3);
   cursor: pointer;
