@@ -180,14 +180,15 @@ const PinLabel = React.memo(function PinLabel({
             inset: 0,
             width: '100%',
             border: 'none',
-            background: 'var(--pin-color)',
+            background: 'var(--pin-bg)',
             fontSize: 9,
             padding: '0 5px',
             outline: 'none',
             zIndex: 10,
-            color: '#fff',
+            color: 'var(--pin-color)',
             borderRadius: 3,
             fontFamily: "'DM Mono', monospace",
+            boxShadow: '0 0 0 1px var(--today-line)',
           }}
           value={editValue}
           onChange={e => setEditValue(e.target.value)}
@@ -577,7 +578,15 @@ export const GanttPane = React.memo(function GanttPane({
       wrap.remove();
       if (!label) return;
       saveHistory();
-      dispatch({ type: 'ADD_PIN', rowId, dateStr: dstr, label });
+      const canvas = document.createElement('canvas');
+      const ctx2d = canvas.getContext('2d');
+      let autoSpan = 1;
+      if (ctx2d) {
+        ctx2d.font = '500 9px DM Mono,monospace';
+        const textW = ctx2d.measureText(label).width;
+        autoSpan = Math.max(1, Math.ceil((textW + 10) / 26));
+      }
+      dispatch({ type: 'ADD_PIN', rowId, dateStr: dstr, label, span: autoSpan });
     }
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') commit();

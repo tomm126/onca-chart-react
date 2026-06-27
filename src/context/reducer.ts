@@ -17,7 +17,7 @@ export type Action =
   | { type: 'ADD_MEMBER'; name: string; color: string }
   | { type: 'UPDATE_MEMBER'; id: string; name: string; color: string }
   | { type: 'DELETE_MEMBER'; id: string }
-  | { type: 'ADD_PIN'; rowId: string; dateStr: string; label: string }
+  | { type: 'ADD_PIN'; rowId: string; dateStr: string; label: string; span?: number }
   | { type: 'RESIZE_PIN'; rowId: string; dateStr: string; pinId: string; span: number }
   | { type: 'DELETE_PIN'; rowId: string; dateStr: string; pinId: string }
   | { type: 'UPDATE_PIN_LABEL'; rowId: string; dateStr: string; pinId: string; label: string }
@@ -198,7 +198,7 @@ export function reducer(state: AppState, action: Action): AppState {
       const pins = JSON.parse(JSON.stringify(state.pins)) as AppState['pins'];
       if (!pins[action.rowId]) pins[action.rowId] = {};
       if (!pins[action.rowId][action.dateStr]) pins[action.rowId][action.dateStr] = [];
-      pins[action.rowId][action.dateStr].push({ id: uid('pin'), label: action.label, span: 1 });
+      pins[action.rowId][action.dateStr].push({ id: uid('pin'), label: action.label, span: action.span ?? 1 });
       return { ...state, pins };
     }
 

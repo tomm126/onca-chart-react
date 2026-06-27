@@ -153,14 +153,14 @@
 
 .pinLabelInner {
   height: 14px;
-  background: var(--pin-color);
-  color: #fff;
+  background: var(--pin-bg);
+  color: var(--pin-color);
   font-size: 9px;
   font-weight: 500;
   font-family: 'DM Mono', monospace;
   padding: 0 5px;
   border-radius: 3px;
-  box-shadow: 0 0 0 1.5px #fff, 0 1px 3px #00000022;
+  box-shadow: 0 0 0 1px var(--border2), 0 1px 3px #00000015;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -199,8 +199,8 @@
   padding: 0 5px;
   font-size: 9px;
   font-family: 'DM Mono', monospace;
-  background: var(--pin-color);
-  color: #fff;
+  background: var(--pin-bg);
+  color: var(--pin-color);
   border: none;
   border-radius: 3px;
   box-shadow: 0 0 0 1.5px var(--today-line);
