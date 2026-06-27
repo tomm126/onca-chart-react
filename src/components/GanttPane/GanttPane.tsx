@@ -156,20 +156,11 @@ const PinLabel = React.memo(function PinLabel({
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'pin');
         onPinDragStart(rowId, dateStr, pin.id);
-        // Defer style changes: browser must commit to the drag operation before
-        // we change the source element's appearance or pointer-events.
-        // Applying pointer-events:none synchronously confuses the browser's
-        // drag tracking and breaks dragover/dragend on the source element.
         setTimeout(() => {
           if (wrapRef.current) wrapRef.current.style.opacity = '.35';
-          document.querySelectorAll('[data-pin-wrap]').forEach(el => {
-            (el as HTMLElement).style.pointerEvents = 'none';
-          });
         }, 0);
       }}
       onDragEnd={() => {
-        // Restore opacity (may not fire if component unmounts after MOVE_PIN;
-        // pointer-events cleanup is handled by the document-level dragend listener)
         if (wrapRef.current) wrapRef.current.style.opacity = '';
         onPinDragEnd();
       }}
@@ -513,13 +504,27 @@ export const GanttPane = React.memo(function GanttPane({
   }, []);
 
   useEffect(() => {
+    // Peek through a single pin-wrap to find the gantt cell beneath it.
+    // Only the one element directly under the cursor gets pointer-events:none
+    // for the duration of a single elementFromPoint call, then it's restored.
+    const peekThrough = (x: number, y: number): Element | null => {
+      const el = document.elementFromPoint(x, y);
+      if (!el) return null;
+      const pinWrap = el.closest('[data-pin-wrap]') as HTMLElement | null;
+      if (!pinWrap) return el;
+      pinWrap.style.pointerEvents = 'none';
+      const beneath = document.elementFromPoint(x, y);
+      pinWrap.style.pointerEvents = '';
+      return beneath;
+    };
+
     const onDragOver = (e: DragEvent) => {
       if (!pinDragDataRef.current) return;
       e.preventDefault();
       if (pinDragOverRafRef.current) return;
       pinDragOverRafRef.current = requestAnimationFrame(() => {
         pinDragOverRafRef.current = null;
-        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const el = peekThrough(e.clientX, e.clientY);
         const cell = el?.closest('[data-gantt-cell]') as HTMLDivElement | null;
         const valid = cell
           && cell.dataset.rowId === pinDragDataRef.current?.rowId
@@ -541,7 +546,7 @@ export const GanttPane = React.memo(function GanttPane({
         pinHoveredCellRef.current.style.outline = '';
         pinHoveredCellRef.current = null;
       }
-      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const el = peekThrough(e.clientX, e.clientY);
       const cell = el?.closest('[data-gantt-cell]') as HTMLDivElement | null;
       const toDk = cell?.dataset.dk;
       const d = pinDragDataRef.current;
@@ -551,12 +556,9 @@ export const GanttPane = React.memo(function GanttPane({
       dispatch({ type: 'MOVE_PIN', rowId: d.rowId, fromDk: d.fromDk, toDk, pinId: d.pinId });
     };
 
-    // Guaranteed cleanup: fires even if the dragged PinLabel component unmounts
-    // (which happens on MOVE_PIN when React re-renders between drop and dragend).
+    // Fires even if PinLabel unmounts after MOVE_PIN (React can't reach onDragEnd
+    // on an unmounted component via event delegation).
     const onDocDragEnd = () => {
-      document.querySelectorAll('[data-pin-wrap]').forEach(el => {
-        (el as HTMLElement).style.pointerEvents = '';
-      });
       if (pinHoveredCellRef.current) {
         pinHoveredCellRef.current.style.outline = '';
         pinHoveredCellRef.current = null;
