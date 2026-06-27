@@ -156,18 +156,18 @@ const PinLabel = React.memo(function PinLabel({
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'pin');
         onPinDragStart(rowId, dateStr, pin.id);
+        // pointer-events must be disabled synchronously before dragend can fire
+        document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+          (el as HTMLElement).style.pointerEvents = 'none';
+        });
+        // opacity change after browser captures drag image
         setTimeout(() => {
           if (wrapRef.current) wrapRef.current.style.opacity = '.35';
-          document.querySelectorAll('[data-pin-wrap]').forEach(el => {
-            (el as HTMLElement).style.pointerEvents = 'none';
-          });
         }, 0);
       }}
       onDragEnd={() => {
+        // Restore opacity for the dragged element (may not fire if component unmounted)
         if (wrapRef.current) wrapRef.current.style.opacity = '';
-        document.querySelectorAll('[data-pin-wrap]').forEach(el => {
-          (el as HTMLElement).style.pointerEvents = '';
-        });
         onPinDragEnd();
       }}
     >
@@ -548,11 +548,26 @@ export const GanttPane = React.memo(function GanttPane({
       dispatch({ type: 'MOVE_PIN', rowId: d.rowId, fromDk: d.fromDk, toDk, pinId: d.pinId });
     };
 
+    // Guaranteed cleanup: fires even if the dragged PinLabel component unmounts
+    // (which happens on MOVE_PIN when React re-renders between drop and dragend).
+    const onDocDragEnd = () => {
+      document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+        (el as HTMLElement).style.pointerEvents = '';
+      });
+      if (pinHoveredCellRef.current) {
+        pinHoveredCellRef.current.style.outline = '';
+        pinHoveredCellRef.current = null;
+      }
+      pinDragDataRef.current = null;
+    };
+
     document.addEventListener('dragover', onDragOver);
     document.addEventListener('drop', onDrop);
+    document.addEventListener('dragend', onDocDragEnd);
     return () => {
       document.removeEventListener('dragover', onDragOver);
       document.removeEventListener('drop', onDrop);
+      document.removeEventListener('dragend', onDocDragEnd);
     };
   }, [dispatch, saveHistory]);
 
