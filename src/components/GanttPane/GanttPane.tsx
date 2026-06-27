@@ -578,7 +578,15 @@ export const GanttPane = React.memo(function GanttPane({
       wrap.remove();
       if (!label) return;
       saveHistory();
-      dispatch({ type: 'ADD_PIN', rowId, dateStr: dstr, label });
+      const canvas = document.createElement('canvas');
+      const ctx2d = canvas.getContext('2d');
+      let autoSpan = 1;
+      if (ctx2d) {
+        ctx2d.font = '500 9px DM Mono,monospace';
+        const textW = ctx2d.measureText(label).width;
+        autoSpan = Math.max(1, Math.ceil((textW + 10) / 26));
+      }
+      dispatch({ type: 'ADD_PIN', rowId, dateStr: dstr, label, span: autoSpan });
     }
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') commit();
