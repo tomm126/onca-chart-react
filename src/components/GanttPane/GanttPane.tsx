@@ -180,14 +180,15 @@ const PinLabel = React.memo(function PinLabel({
             inset: 0,
             width: '100%',
             border: 'none',
-            background: 'var(--pin-color)',
+            background: 'var(--pin-bg)',
             fontSize: 9,
             padding: '0 5px',
             outline: 'none',
             zIndex: 10,
-            color: '#fff',
+            color: 'var(--pin-color)',
             borderRadius: 3,
             fontFamily: "'DM Mono', monospace",
+            boxShadow: '0 0 0 1px var(--today-line)',
           }}
           value={editValue}
           onChange={e => setEditValue(e.target.value)}
