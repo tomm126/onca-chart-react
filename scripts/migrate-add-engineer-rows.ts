@@ -1,74 +1,98 @@
 /**
- * 移行スクリプト: 全案件にエンジニア行（m15）を追加する
+ * 全案件にエンジニア行（m15）を追加するマイグレーション（Admin SDK版）
  *
- * 【実行前の確認事項】
- * - Firestore の 'charts/main' ドキュメントをバックアップしてから実行してください
- * - 既に m15 行がある案件はスキップされます
+ * 実行方法:
+ *   export FIREBASE_SERVICE_ACCOUNT='<サービスアカウントJSONの内容>'
+ *   npm run migrate:engineer-rows
  *
- * 【実行方法】
- * ブラウザのコンソールに以下を貼り付けて実行:
- *   1. アプリを開いた状態でDevToolsのConsoleを開く
- *   2. 下記のスクリプトをそのまま貼り付けて実行
- *
- * または ts-node で実行:
- *   npx ts-node --esm scripts/migrate-add-engineer-rows.ts
+ * サービスアカウントキーの取得:
+ *   Firebase Console → プロジェクトの設定 → サービスアカウント
+ *   → 「新しい秘密鍵の生成」→ JSONファイルをダウンロード
+ *   → cat serviceAccountKey.json | jq -c . で1行JSONに変換して環境変数にセット
  */
 
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../src/firebase';
-import type { AppState, Row } from '../src/types';
+import admin from 'firebase-admin';
+
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (!serviceAccountJson) {
+  console.error('エラー: FIREBASE_SERVICE_ACCOUNT 環境変数が設定されていません');
+  process.exit(1);
+}
+
+let serviceAccount: admin.ServiceAccount;
+try {
+  serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+} catch {
+  console.error('エラー: FIREBASE_SERVICE_ACCOUNT のJSONパースに失敗しました');
+  process.exit(1);
+}
+
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const db = admin.firestore();
 
 const ENGINEER_MEMBER_ID = 'm15';
-const CHART_DOC = doc(db, 'charts', 'main');
 
 function uid(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-async function migrateAddEngineerRows(): Promise<void> {
-  console.log('[Migration] エンジニア行追加スクリプト開始...');
+function makeUniqueId(prefix: string, existingIds: Set<string>): string {
+  let id = uid(prefix);
+  while (existingIds.has(id)) {
+    id = uid(prefix);
+  }
+  return id;
+}
 
-  const snap = await getDoc(CHART_DOC);
-  if (!snap.exists()) {
-    console.error('[Migration] charts/main が存在しません');
-    return;
+async function main(): Promise<void> {
+  console.log('charts/main を取得中...');
+  const ref = db.collection('charts').doc('main');
+  const snap = await ref.get();
+
+  if (!snap.exists) {
+    console.error('エラー: charts/main ドキュメントが存在しません');
+    process.exit(1);
   }
 
-  const { _sid: _, ...data } = snap.data();
-  const state = data as AppState;
+  const data = snap.data()!;
+  const projects: Record<string, unknown>[] = data.projects ?? [];
 
   let addedCount = 0;
   let skippedCount = 0;
 
-  const updatedProjects = state.projects.map(proj => {
-    const alreadyHasEngineer = proj.rows.some(r => r.memberId === ENGINEER_MEMBER_ID);
+  const updatedProjects = projects.map(proj => {
+    const rows: Record<string, unknown>[] = (proj.rows as Record<string, unknown>[]) ?? [];
+
+    const alreadyHasEngineer = rows.some(r => r.memberId === ENGINEER_MEMBER_ID);
     if (alreadyHasEngineer) {
       skippedCount++;
       return proj;
     }
 
-    const maxOrder = proj.rows.reduce((max, r) => Math.max(max, r.order), -1);
-    const newRow: Row = {
-      id: uid('r'),
+    const existingIds = new Set(rows.map(r => r.id as string));
+    const newId = makeUniqueId('r', existingIds);
+    const newRow = {
+      id: newId,
       memberId: ENGINEER_MEMBER_ID,
-      order: maxOrder + 1,
+      order: rows.length,
       cells: {},
     };
 
     addedCount++;
-    console.log(`[Migration] ${proj.name} にエンジニア行を追加`);
-    return { ...proj, rows: [...proj.rows, newRow] };
+    console.log(`追加: [${proj.id}] "${proj.name}"`);
+    return { ...proj, rows: [...rows, newRow] };
   });
 
-  const updatedState = {
-    ...state,
-    projects: updatedProjects,
-    meta: { ...state.meta, updatedAt: new Date().toISOString() },
-  };
+  if (addedCount === 0) {
+    console.log('追加対象のデータはありませんでした。');
+    return;
+  }
 
-  await setDoc(CHART_DOC, { ...updatedState, _sid: '' });
-
-  console.log(`[Migration] 完了: ${addedCount} 件追加, ${skippedCount} 件スキップ`);
+  await ref.update({ projects: updatedProjects });
+  console.log(`\n✅ ${addedCount} 件にエンジニア行を追加, ${skippedCount} 件スキップしました。`);
 }
 
-migrateAddEngineerRows().catch(console.error);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
