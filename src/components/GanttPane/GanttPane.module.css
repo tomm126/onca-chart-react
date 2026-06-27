@@ -69,7 +69,7 @@
   justify-content: center;
   font-size: 10px;
   font-family: 'DM Mono', monospace;
-  color: var(--text3);
+  color: var(--text);
   border-right: 1px solid var(--border);
   position: relative;
   gap: 1px;

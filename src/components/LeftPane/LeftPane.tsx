@@ -241,7 +241,7 @@ function ProjectGroup({
                   <div
                     key={row.id}
                     className={rowCls}
-                    data-row-id={row.id}
+                    data-lp-row={row.id}
                     onDragOver={e => {
                       if (!rowDragRef.current || rowDragRef.current.rowId === row.id) return;
                       e.preventDefault();
