@@ -156,17 +156,20 @@ const PinLabel = React.memo(function PinLabel({
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'pin');
         onPinDragStart(rowId, dateStr, pin.id);
-        // pointer-events must be disabled synchronously before dragend can fire
-        document.querySelectorAll('[data-pin-wrap]').forEach(el => {
-          (el as HTMLElement).style.pointerEvents = 'none';
-        });
-        // opacity change after browser captures drag image
+        // Defer style changes: browser must commit to the drag operation before
+        // we change the source element's appearance or pointer-events.
+        // Applying pointer-events:none synchronously confuses the browser's
+        // drag tracking and breaks dragover/dragend on the source element.
         setTimeout(() => {
           if (wrapRef.current) wrapRef.current.style.opacity = '.35';
+          document.querySelectorAll('[data-pin-wrap]').forEach(el => {
+            (el as HTMLElement).style.pointerEvents = 'none';
+          });
         }, 0);
       }}
       onDragEnd={() => {
-        // Restore opacity for the dragged element (may not fire if component unmounted)
+        // Restore opacity (may not fire if component unmounts after MOVE_PIN;
+        // pointer-events cleanup is handled by the document-level dragend listener)
         if (wrapRef.current) wrapRef.current.style.opacity = '';
         onPinDragEnd();
       }}
