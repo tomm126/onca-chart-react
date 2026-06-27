@@ -216,6 +216,7 @@
   margin-left: -1px;
   background: var(--archive-bar-c);
   opacity: .6;
+  cursor: col-resize;
   z-index: 55;
   transition: opacity .12s;
 }
@@ -242,6 +243,7 @@
   border-right: 8px solid transparent;
   border-top: 10px solid var(--archive-bar-c);
   opacity: .7;
+  cursor: col-resize;
 }
 
 .archiveBar:hover { opacity: .9; }
