@@ -773,7 +773,7 @@ export const GanttPane = React.memo(function GanttPane({
                   const mem = state.members.find(m => m.id === row.memberId) ?? { id: '', name: '?', color: '#aaa' };
                   const filled = !!row.cells[dstr];
                   const rowPins = state.pins[row.id]?.[dstr] ?? [];
-                  const isOverlapWarn = filled && !!(overlapData.warn.get(row.memberId)?.has(dstr));
+                  const isOverlapWarn = filled && !nwd && !!(overlapData.warn.get(row.memberId)?.has(dstr));
                   const overlapCount = overlapData.counter.get(row.memberId)?.get(dstr) ?? 0;
                   const overlapTitle = isOverlapWarn
                     ? `${mem.name}：同日に${overlapCount}件のスケジュールが重複しています`
