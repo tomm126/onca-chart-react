@@ -219,6 +219,8 @@ const GanttCell = React.memo(function GanttCell({
   isToday,
   isFirstRow,
   pins,
+  overlapWarn,
+  overlapTitle,
   cellRef,
   onMouseDown,
   onMouseEnter,
@@ -243,6 +245,8 @@ const GanttCell = React.memo(function GanttCell({
   isToday: boolean;
   isFirstRow: boolean;
   pins: Pin[];
+  overlapWarn: boolean;
+  overlapTitle: string;
   cellRef: (el: HTMLDivElement | null) => void;
   onMouseDown: (di: number, dstr: string, rowId: string, paint: boolean) => void;
   onMouseEnter: (el: HTMLDivElement, di: number, dstr: string, rowId: string) => void;
@@ -264,6 +268,7 @@ const GanttCell = React.memo(function GanttCell({
     if (isToday) cls += ' ' + styles.todayCell;
     if (isArc) cls += ' ' + styles.arcCell;
   }
+  if (overlapWarn) cls += ' ' + styles.overlapWarn;
 
   const bg = filled ? `${color}aa` : undefined;
 
@@ -272,6 +277,7 @@ const GanttCell = React.memo(function GanttCell({
       ref={cellRef}
       className={cls}
       style={bg ? { background: bg } : undefined}
+      title={overlapTitle || undefined}
       onMouseDown={isNwd ? undefined : e => { if (e.button !== 0) return; e.preventDefault(); onMouseDown(di, dstr, rowId, !filled); }}
       onMouseEnter={isNwd ? undefined : e => onMouseEnter(e.currentTarget as HTMLDivElement, di, dstr, rowId)}
       onMouseLeave={isNwd ? undefined : e => onMouseLeave(e.currentTarget as HTMLDivElement, dstr)}
@@ -307,6 +313,31 @@ export const GanttPane = React.memo(function GanttPane({
 
   const today = todayStr();
   const cellMapRef = useRef<CellMap>(new Map());
+
+  // ── Overlap warning: memberId×date count ──────────────────────────────────────
+  const overlapData = useMemo(() => {
+    const counter = new Map<string, Map<string, number>>();
+    state.projects.forEach(proj => {
+      proj.rows.forEach(row => {
+        Object.keys(row.cells || {}).forEach(dstr => {
+          if (!row.cells[dstr]) return;
+          if (!counter.has(row.memberId)) counter.set(row.memberId, new Map());
+          const dateMap = counter.get(row.memberId)!;
+          dateMap.set(dstr, (dateMap.get(dstr) ?? 0) + 1);
+        });
+      });
+    });
+    const warn = new Map<string, Set<string>>();
+    counter.forEach((dateMap, mid) => {
+      dateMap.forEach((count, dstr) => {
+        if (count >= 3) {
+          if (!warn.has(mid)) warn.set(mid, new Set());
+          warn.get(mid)!.add(dstr);
+        }
+      });
+    });
+    return { warn, counter };
+  }, [state.projects]);
 
   // ── Cross highlight (#86) ────────────────────────────────────────────────────
   const hoveredDkRef = useRef<string | null>(null);
@@ -713,6 +744,11 @@ export const GanttPane = React.memo(function GanttPane({
                   const mem = state.members.find(m => m.id === row.memberId) ?? { id: '', name: '?', color: '#aaa' };
                   const filled = !!row.cells[dstr];
                   const rowPins = state.pins[row.id]?.[dstr] ?? [];
+                  const isOverlapWarn = filled && !!(overlapData.warn.get(row.memberId)?.has(dstr));
+                  const overlapCount = overlapData.counter.get(row.memberId)?.get(dstr) ?? 0;
+                  const overlapTitle = isOverlapWarn
+                    ? `${mem.name}：同日に${overlapCount}件のスケジュールが重複しています`
+                    : '';
 
                   return (
                     <GanttCell
@@ -728,6 +764,8 @@ export const GanttPane = React.memo(function GanttPane({
                       isToday={dstr === today}
                       isFirstRow={ri === 0}
                       pins={rowPins}
+                      overlapWarn={isOverlapWarn}
+                      overlapTitle={overlapTitle}
                       cellRef={el => {
                         const key = buildCellKey(row.id, dstr);
                         if (el) {

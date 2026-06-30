@@ -207,6 +207,26 @@
   outline: none;
 }
 
+/* Overlap warning (same member, 3+ schedules on same day) */
+.overlapWarn {
+  box-shadow: inset 0 0 0 1.5px #1a1916;
+}
+
+.overlapWarn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, .25) 0,
+    rgba(0, 0, 0, .25) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
 /* Archive bar */
 .archiveBar {
   position: absolute;
