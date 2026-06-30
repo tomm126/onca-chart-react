@@ -260,12 +260,15 @@ function BulkAddForm({ projectId, rowId, startDate }: { projectId: string; rowId
     const si = allDays.findIndex(d => dk(d) === startDate);
     if (si < 0) return;
     const dates: string[] = [];
-    for (let i = 0; i < n; i++) {
-      if (si + i >= allDays.length) break;
+    let filled = 0;
+    let i = 0;
+    while (filled < n && si + i < allDays.length) {
       const d2 = dk(allDays[si + i]);
-      if (isNWD(d2, state.customNonWorkingDays, state.removedHolidays)) continue;
-      if (d2 <= state.view.archiveBefore) continue;
-      dates.push(d2);
+      if (!isNWD(d2, state.customNonWorkingDays, state.removedHolidays) && d2 > state.view.archiveBefore) {
+        dates.push(d2);
+        filled++;
+      }
+      i++;
     }
     dispatch({ type: 'SET_CELLS', rowId, dates, value: true });
     setPanel({ type: 'none' });
@@ -275,7 +278,7 @@ function BulkAddForm({ projectId, rowId, startDate }: { projectId: string; rowId
     <>
       <div className={styles.subNote}>{proj?.name} — {mem?.name} / {startDate}〜</div>
       <div className={styles.fg}>
-        <label>日数</label>
+        <label>日数（営業日ベース・土日祝を除く）</label>
         <input
           autoFocus
           type="number"
